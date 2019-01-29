@@ -21,4 +21,4 @@ Use an Arduino and an LED Matrix to show the elasped time on a Kodi installation
 
 ## Testing
 
-* echo "1236:2860:Play" > /dev/ttyUSB0
+* `echo "1236:2860:Play" > /dev/ttyUSB0`
