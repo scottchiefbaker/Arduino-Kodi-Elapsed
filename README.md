@@ -8,6 +8,7 @@ Use an Arduino and an LED Matrix to show the elasped time on a Kodi installation
 * 32x8 LED Matrix
 * Arduino to drive the LED Matrix
 * Python and Pyserial installed on Kodi to send data to Arduino
+* Arduino connected to the RPi via USB (for serial connectivity)
 
 ## Installation
 
