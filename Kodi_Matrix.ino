@@ -23,7 +23,7 @@ void setup() {
 	Serial.begin(57600);
 }
 
-int max     = 0;
+int maximum = 0;
 int elapsed = 0;
 void loop() {
 	delay(10);
@@ -70,7 +70,7 @@ void loop() {
 	int dig5 = seconds % 10;
 
 	//char buf[40];
-	//sprintf(buf,"Elapsed: %i Total: %i\r\n", elapsed, max);
+	//sprintf(buf,"Elapsed: %i Total: %i\r\n", elapsed, maximum);
 	//Serial.print(buf);
 
 	//sprintf(buf,"Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
@@ -92,7 +92,7 @@ void loop() {
 		drawSprite( sprites[dig5],  20, 0, 8, 8 );
 	}
 
-	float percent = ((float)elapsed / (float)max) * 100;
+	float percent = ((float)elapsed / (float)maximum) * 100;
 	draw_percent_bar(percent);
 
 	// Toggle display of the new framebuffer
@@ -156,7 +156,7 @@ void recvWithEndMarker() {
 				if (id == 0) {
 					elapsed = atoi(word);
 				} else if (id == 1) {
-					max = atoi(word);
+					maximum = atoi(word);
 				} else {
 					// Stop/Start/Pause
 				}
@@ -167,7 +167,7 @@ void recvWithEndMarker() {
 
 			newData = false;
 			char buf[40] = "";
-			sprintf(buf, "Elapsed: %i Total: %i\r\n", elapsed, max);
+			sprintf(buf, "Elapsed: %i Total: %i\r\n", elapsed, maximum);
 
 			Serial.print(buf);
 		}
