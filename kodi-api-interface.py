@@ -69,19 +69,21 @@ def loop():
         #    print(mins_str + ":" + secs_str)
 
         # Sleep X seconds
-        time.sleep(1)
+        time.sleep(0.5)
 
 def run_test():
-    i = 0
-    while i < 5800:
-        line = str(i) + ":" + str(6000) + ":Play"
+    i     = 0
+    total = 6000;
+
+    while i < total:
+        line = str(i) + ":" + str(total) + ":Play"
 
         # Write the line to the serial port
         ser.write(line + "\n")
         #print(line)
 
         time.sleep(0.05)
-        i = i + 1
+        i += 1
 
     return i
 
