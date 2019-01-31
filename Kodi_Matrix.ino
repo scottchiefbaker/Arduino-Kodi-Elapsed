@@ -1,5 +1,8 @@
 #include <LEDMatrixDriver.hpp>
 
+//#include <PrintEx.h>
+//PrintEx s = Serial;
+
 // This sketch draw marquee text on your LED matrix using the hardware SPI driver Library by Bartosz Bielawski.
 // Example written 16.06.2017 by Marko Oette, www.oette.info
 
@@ -18,13 +21,17 @@ LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN);
 void setup() {
 	// init the display
 	lmd.setEnabled(true);
-	lmd.setIntensity(5);   // 0 = low, 10 = high
+	lmd.setIntensity(3);   // 0 = low, 10 = high
 
 	Serial.begin(57600);
+
+	init_matrix();
+	delay(2000);
 }
 
-int maximum = 0;
-int elapsed = 0;
+int maximum   = 0;
+int elapsed   = 0;
+int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 void loop() {
 	delay(10);
 	recvWithEndMarker();
@@ -32,7 +39,8 @@ void loop() {
 	lmd.clear();
 	lmd.display();
 
-	if (!elapsed) {
+	if (!maximum) {
+		Serial.print("No input data\r\n");
 		return;
 	}
 
@@ -76,20 +84,33 @@ void loop() {
 	//sprintf(buf,"Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
 	//Serial.print(buf);
 
-	if (elapsed <= 3600) {
-		drawSprite( sprites[dig2],  0,  0, 8, 8 );
-		drawSprite( sprites[dig3],  4,  0, 8, 8 );
-		drawSprite( sprites[10],    8,  0, 8, 8 );
-		drawSprite( sprites[dig4],  10, 0, 8, 8 );
-		drawSprite( sprites[dig5],  14, 0, 8, 8 );
+	// Play
+	if (play_mode == 1) {
+		drawSprite( sprites[11], -1, 0, 8, 8 );
+	// Pause
+	} else if (play_mode == 2) {
+		drawSprite( sprites[12], -1, 0, 8, 8 );
+	// Stop
+	} else if (play_mode == 3) {
+		drawSprite( sprites[13], -1, 0, 8, 8 );
+	}
+
+	int offset = 3;
+
+	if (elapsed < 3600) {
+		drawSprite( sprites[dig2], offset + 1,  0, 8, 8 );
+		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 );
+		drawSprite( sprites[10],   offset + 9,  0, 8, 8 );
+		drawSprite( sprites[dig4], offset + 11, 0, 8, 8 );
+		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 );
 	} else {
-		drawSprite( sprites[dig1],  0,  0, 8, 8 );
-		drawSprite( sprites[10],    4,  0, 8, 8 );
-		drawSprite( sprites[dig2],  6,  0, 8, 8 );
-		drawSprite( sprites[dig3],  10, 0, 8, 8 );
-		drawSprite( sprites[10],    14, 0, 8, 8 );
-		drawSprite( sprites[dig4],  16, 0, 8, 8 );
-		drawSprite( sprites[dig5],  20, 0, 8, 8 );
+		drawSprite( sprites[dig1], offset + 1,  0, 8, 8 );
+		drawSprite( sprites[10],   offset + 5,  0, 8, 8 );
+		drawSprite( sprites[dig2], offset + 7,  0, 8, 8 );
+		drawSprite( sprites[dig3], offset + 11, 0, 8, 8 );
+		drawSprite( sprites[10],   offset + 15, 0, 8, 8 );
+		drawSprite( sprites[dig4], offset + 17, 0, 8, 8 );
+		drawSprite( sprites[dig5], offset + 21, 0, 8, 8 );
 	}
 
 	float percent = ((float)elapsed / (float)maximum) * 100;
@@ -100,13 +121,14 @@ void loop() {
 }
 
 void draw_percent_bar(float percent) {
-	float dot_width = (1.0 / (float)(LEDMATRIX_WIDTH)) * 100;
-	//Serial.print("DotWidth: ");
-	//Serial.println(dot_width);
+	float dot_width = (1.0 / (float)(LEDMATRIX_WIDTH * 2 - 1)) * 100;
+	//s.printf("DotWidth: %0.3f\r\n", dot_width);
 
 	for (int i = 0 ; i < 32 ; i++) {
-		float top_dot_percent    = ((float)i / (float)(LEDMATRIX_WIDTH - 1)) * 100;
-		float bottom_dot_percent = top_dot_percent - (dot_width / 2.0);
+		float bottom_dot_percent = ((float)(i * 2)     * dot_width);
+		float top_dot_percent    = ((float)(i * 2 + 1) * dot_width);
+
+		//s.printf("%02d = %0.3f/%0.3f\r\n", i, top_dot_percent, bottom_dot_percent);
 
 		if (bottom_dot_percent <= percent) {
 			lmd.setPixel(i,7,true);
@@ -157,8 +179,18 @@ void recvWithEndMarker() {
 					elapsed = atoi(word);
 				} else if (id == 1) {
 					maximum = atoi(word);
+				} else if (id == 2) {
+					if (strcmp(word,"Play") == 0) {
+						play_mode = 1;
+					} else if (strcmp(word,"Pause") == 0) {
+						play_mode = 2;
+					} else if (strcmp(word,"Stop") == 0) {
+						play_mode = 3;
+					}
+
+					Serial.println(word);
 				} else {
-					// Stop/Start/Pause
+					// ??
 				}
 
 				word = strtok (NULL, ":|");
@@ -191,5 +223,30 @@ void drawSprite( byte* sprite, int x, int y, int width, int height ) {
 
 		// reset column mask
 		mask = B10000000;
+	}
+}
+
+void init_matrix() {
+	lmd.clear();
+	lmd.display();
+
+	int md = 30;
+
+	// Horizontal lines
+	for (int i = 0; i < 32; i++) {
+		lmd.setPixel(i,7,true);
+		lmd.setPixel(31 - i,0,true);
+
+		lmd.display();
+		delay(md);
+	}
+
+	// Vertical lines
+	for (int i = 0; i < 8; i++) {
+		lmd.setPixel(0,i,true);
+		lmd.setPixel(31,8 - i,true);
+
+		lmd.display();
+		delay(md);
 	}
 }
