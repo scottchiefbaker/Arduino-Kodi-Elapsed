@@ -29,6 +29,8 @@ void setup() {
 	delay(2000);
 }
 
+unsigned long last_update = 0;
+
 int maximum   = 0;
 int elapsed   = 0;
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
@@ -41,6 +43,12 @@ void loop() {
 
 	if (!maximum) {
 		Serial.print("No input data\r\n");
+		return;
+	}
+
+	// If we don't have any new serial data in X seconds clear the display
+	unsigned long now = millis();
+	if (now - last_update > 5000) {
 		return;
 	}
 
@@ -179,6 +187,8 @@ void recvWithEndMarker() {
 					elapsed = atoi(word);
 				} else if (id == 1) {
 					maximum = atoi(word);
+
+					last_update = millis();
 				} else if (id == 2) {
 					if (strcmp(word,"Play") == 0) {
 						play_mode = 1;
