@@ -27,6 +27,8 @@ void setup() {
 
 	init_matrix();
 	delay(2000);
+
+	clear_display();
 }
 
 unsigned long last_update = 0;
@@ -38,17 +40,18 @@ void loop() {
 	delay(10);
 	recvWithEndMarker();
 
-	lmd.clear();
-	lmd.display();
-
 	if (!maximum) {
 		Serial.print("No input data\r\n");
+		clear_display();
+
 		return;
 	}
 
 	// If we don't have any new serial data in X seconds clear the display
 	unsigned long now = millis();
 	if (now - last_update > 5000) {
+		clear_display();
+
 		return;
 	}
 
@@ -259,4 +262,9 @@ void init_matrix() {
 		lmd.display();
 		delay(md);
 	}
+}
+
+void clear_display() {
+	lmd.clear();
+	lmd.display();
 }
