@@ -7,7 +7,9 @@
 // Example written 16.06.2017 by Marko Oette, www.oette.info
 
 // Define the ChipSelect pin for the led matrix (Dont use the SS or MISO pin of your Arduino!)
-// Other pins are Arduino specific SPI pins (MOSI=DIN, SCK=CLK of the LEDMatrix) see https://www.arduino.cc/en/Reference/SPI
+//* DIN => Pin #13
+//* CLK => Pin #11
+//* CS  => Pin #9
 const uint8_t LEDMATRIX_CS_PIN = 9;
 
 // Define LED Matrix dimensions: 32x8, 16x8, or 8x8
@@ -21,21 +23,24 @@ LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN);
 void setup() {
 	// init the display
 	lmd.setEnabled(true);
-	lmd.setIntensity(3);   // 0 = low, 10 = high
+	lmd.setIntensity(3); // 0 = low, 10 = high
 
 	Serial.begin(57600);
 
+	// Show the splash screen so you know it's on
 	init_matrix();
 	delay(2000);
 
 	clear_display();
 }
 
+// Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
 
-int maximum   = 0;
-int elapsed   = 0;
+int maximum   = 0; // Total number of seconds in the media
+int elapsed   = 0; // Elapsed seconds in the media
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
+
 void loop() {
 	delay(10);
 	recvWithEndMarker();
@@ -106,6 +111,8 @@ void loop() {
 		drawSprite( sprites[13], -1, 0, 8, 8 );
 	}
 
+	// Number of pixels to start the numbers (from the left)
+	// This leaves room for the Play/Pause symbol
 	int offset = 3;
 
 	if (elapsed < 3600) {
@@ -155,7 +162,8 @@ void draw_percent_bar(float percent) {
 	}
 }
 
-const byte numChars = 100;
+// Buffer to store incoming serial commands
+const byte numChars = 50;
 char receivedChars[numChars]; // an array to store the received data
 boolean newData = false;
 
@@ -183,15 +191,20 @@ void recvWithEndMarker() {
 
 			int id = 0;
 
+			// Input format is: "3190:4940:Play"
+
 			char *word;
 			word = strtok(receivedChars,":|");
 			while (word != NULL) {
+				// First segement is elapsed seconds
 				if (id == 0) {
 					elapsed = atoi(word);
+				// Second segement is total seconds
 				} else if (id == 1) {
 					maximum = atoi(word);
 
 					last_update = millis();
+				// Third segment is the play mode
 				} else if (id == 2) {
 					if (strcmp(word,"Play") == 0) {
 						play_mode = 1;
@@ -200,8 +213,6 @@ void recvWithEndMarker() {
 					} else if (strcmp(word,"Stop") == 0) {
 						play_mode = 3;
 					}
-
-					Serial.println(word);
 				} else {
 					// ??
 				}
@@ -211,10 +222,8 @@ void recvWithEndMarker() {
 			}
 
 			newData = false;
-			char buf[40] = "";
-			sprintf(buf, "Elapsed: %i Total: %i\r\n", elapsed, maximum);
 
-			Serial.print(buf);
+			//s.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
 		}
 	}
 }
@@ -240,10 +249,9 @@ void drawSprite( byte* sprite, int x, int y, int width, int height ) {
 }
 
 void init_matrix() {
-	lmd.clear();
-	lmd.display();
+	clear_display();
 
-	int md = 30;
+	int pixel_delay = 30;
 
 	// Horizontal lines
 	for (int i = 0; i < 32; i++) {
@@ -251,7 +259,7 @@ void init_matrix() {
 		lmd.setPixel(31 - i,0,true);
 
 		lmd.display();
-		delay(md);
+		delay(pixel_delay);
 	}
 
 	// Vertical lines
@@ -260,7 +268,7 @@ void init_matrix() {
 		lmd.setPixel(31,8 - i,true);
 
 		lmd.display();
-		delay(md);
+		delay(pixel_delay);
 	}
 }
 
