@@ -43,10 +43,18 @@ def loop():
         cur_time = (hours * 3600) + (mins * 60) + secs
         total    = (x["result"]["totaltime"]["hours"] * 3600) + (x["result"]["totaltime"]["minutes"] * 60) + x["result"]["totaltime"]["seconds"]
 
+        speed = x['result']['speed'];
+        if (speed == 1):
+            speed_str = "Play"
+        elif (speed == 0 and total > 0):
+            speed_str = "Pause"
+        elif (speed == 0):
+            speed_str = "Stop"
+
         # Build the string to send to the Arduino via serial
         # Format: ElapsedSeconds:TotalSeconds:PlayMode
         # Example: 1042:2820:Play
-        line = str(cur_time) + ":" + str(total) + ":Play"
+        line = str(cur_time) + ":" + str(total) + ":" + speed_str
         print(line)
 
         # Write the line to the serial port
