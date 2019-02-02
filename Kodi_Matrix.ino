@@ -161,6 +161,11 @@ void draw_percent_bar() {
 			lmd.setPixel(i,6,false);
 		}
 	}
+
+	// Add 0%, 50%, 100% indicators so you can see it at a distance
+	lmd.setPixel(0,7,true);
+	lmd.setPixel((LEDMATRIX_WIDTH / 2),7,true);
+	lmd.setPixel((LEDMATRIX_WIDTH -1),7,true);
 }
 
 // Buffer to store incoming serial commands
