@@ -1,7 +1,7 @@
 #include <LEDMatrixDriver.hpp>
 
-//#include <PrintEx.h>
-//PrintEx s = Serial;
+#include <PrintEx.h>
+PrintEx s = Serial;
 
 // This sketch draw marquee text on your LED matrix using the hardware SPI driver Library by Bartosz Bielawski.
 // Example written 16.06.2017 by Marko Oette, www.oette.info
@@ -43,7 +43,7 @@ int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 
 void loop() {
 	delay(10);
-	int ok = recvWithEndMarker();
+	int ok = process_serial_commands();
 
 	if (!maximum) {
 		Serial.print("No input data\r\n");
@@ -169,12 +169,11 @@ const byte numChars = 50;
 char receivedChars[numChars]; // an array to store the received data
 boolean newData = false;
 
-int recvWithEndMarker() {
+int process_serial_commands() {
 	static byte ndx = 0;
 	char endMarker = '\n';
 	char rc;
 
-	// if (Serial.available() > 0) {
 	while (Serial.available() > 0 && newData == false) {
 		rc = Serial.read();
 
@@ -186,10 +185,9 @@ int recvWithEndMarker() {
 			}
 		} else {
 			receivedChars[ndx] = '\0'; // terminate the string
-			ndx = 0;
-			newData = true;
-			//Serial.print("Got: ");
-			//Serial.println(receivedChars);
+			ndx                = 0;
+			newData            = true;
+			//s.printf("Got: %s\r\n", receivedChars);
 
 			// Input format is: "3190:4940:Play"
 			// Input format is: "!command:value"
@@ -214,23 +212,27 @@ int recvWithEndMarker() {
 			parts[1] = input.substring(first + 1, second);
 			parts[2] = input.substring(second + 1);
 
-			//Serial.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
+			//s.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
 
-			elapsed = parts[0].toInt();
-			maximum = parts[1].toInt();
+			if (parts[0].startsWith("!")) {
+				int ok = process_cmd(parts[0],parts[1]);
+			} else {
+				elapsed = parts[0].toInt();
+				maximum = parts[1].toInt();
 
-			if (parts[2] == "Play") {
-				play_mode = 1;
-			} else if (parts[2] == "Pause") {
-				play_mode = 2;
-			} else if (parts[2] == "Stop") {
-				play_mode = 3;
+				if (parts[2] == "Play") {
+					play_mode = 1;
+				} else if (parts[2] == "Pause") {
+					play_mode = 2;
+				} else if (parts[2] == "Stop") {
+					play_mode = 3;
+				}
+
+				last_update = millis();
 			}
 
-			last_update = millis();
-			newData     = false;
-
-			//Serial.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
+			newData = false;
+			//s.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
 		}
 	}
 
@@ -286,7 +288,6 @@ void init_matrix() {
 		for (int y = 1; y < 7 ; y++) {
 			int val = ((x + y) % 2) == 0;
 			lmd.setPixel(x,y,val);
-			//Serial.printf("%d,%d = %d\r\n",x,y,val);
 		}
 
 		lmd.display();
@@ -300,9 +301,18 @@ void clear_display() {
 	lmd.display();
 }
 
-void process_cmd(String cmd, String value) {
-	//Serial.printf("Command: %s . %s", cmd.c_str(), value.c_str());
+int process_cmd(String cmd, String value) {
+	//s.printf("Command: %s => %s", cmd.c_str(), value.c_str());
+	int ret = 0;
 
-	int num = atoi(value.c_str());
-	lmd.setIntensity(num);
+	if (cmd == "!intensity") {
+		int num = value.toInt();
+		lmd.setIntensity(num);
+
+		//s.printf("Setting intensity to %d\r\n", num);
+
+		ret = 1;
+	}
+
+	return ret;
 }
