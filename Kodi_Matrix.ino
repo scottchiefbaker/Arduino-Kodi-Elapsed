@@ -270,6 +270,20 @@ void init_matrix() {
 		lmd.display();
 		delay(pixel_delay);
 	}
+
+	pixel_delay = 10;
+
+	for (int x = 1; x < LEDMATRIX_WIDTH - 1; x++) {
+		for (int y = 1; y < 7 ; y++) {
+			int val = ((x + y) % 2) == 0;
+			lmd.setPixel(x,y,val);
+			//Serial.printf("%d,%d = %d\r\n",x,y,val);
+		}
+
+		lmd.display();
+
+		delay(pixel_delay);
+	}
 }
 
 void clear_display() {
