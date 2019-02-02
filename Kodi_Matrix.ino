@@ -23,7 +23,7 @@ LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN);
 void setup() {
 	// init the display
 	lmd.setEnabled(true);
-	lmd.setIntensity(3); // 0 = low, 10 = high
+	lmd.setIntensity(2); // 0 = low, 10 = high
 
 	Serial.begin(57600);
 
