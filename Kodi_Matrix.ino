@@ -216,8 +216,8 @@ int recvWithEndMarker() {
 
 			//Serial.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
 
-			elapsed = atoi(parts[0].c_str());
-			maximum = atoi(parts[1].c_str());
+			elapsed = parts[0].toInt();
+			maximum = parts[1].toInt();
 
 			if (parts[2] == "Play") {
 				play_mode = 1;
