@@ -10,7 +10,7 @@
 //* DIN => Pin #13
 //* CLK => Pin #11
 //* CS  => Pin #9
-const uint8_t LEDMATRIX_CS_PIN = 9;
+const uint8_t LEDMATRIX_CS_PIN = D2;
 
 // Define LED Matrix dimensions: 32x8, 16x8, or 8x8
 const int LEDMATRIX_WIDTH    = 32;
@@ -43,11 +43,13 @@ int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 
 void loop() {
 	delay(10);
-	recvWithEndMarker();
+	int ok = recvWithEndMarker();
 
 	if (!maximum) {
 		Serial.print("No input data\r\n");
 		clear_display();
+
+		delay(250);
 
 		return;
 	}
@@ -167,7 +169,7 @@ const byte numChars = 50;
 char receivedChars[numChars]; // an array to store the received data
 boolean newData = false;
 
-void recvWithEndMarker() {
+int recvWithEndMarker() {
 	static byte ndx = 0;
 	char endMarker = '\n';
 	char rc;
@@ -189,43 +191,50 @@ void recvWithEndMarker() {
 			//Serial.print("Got: ");
 			//Serial.println(receivedChars);
 
-			int id = 0;
-
 			// Input format is: "3190:4940:Play"
+			// Input format is: "!command:value"
 
-			char *word;
-			word = strtok(receivedChars,":|");
-			while (word != NULL) {
-				// First segement is elapsed seconds
-				if (id == 0) {
-					elapsed = atoi(word);
-				// Second segement is total seconds
-				} else if (id == 1) {
-					maximum = atoi(word);
+			String input = receivedChars;
 
-					last_update = millis();
-				// Third segment is the play mode
-				} else if (id == 2) {
-					if (strcmp(word,"Play") == 0) {
-						play_mode = 1;
-					} else if (strcmp(word,"Pause") == 0) {
-						play_mode = 2;
-					} else if (strcmp(word,"Stop") == 0) {
-						play_mode = 3;
-					}
-				} else {
-					// ??
-				}
+			int first  = input.indexOf(":");
+			int second = input.indexOf(":", first + 1);
 
-				word = strtok (NULL, ":|");
-				id++;
+			if (first == -1) {
+				elapsed   = 0;
+				maximum   = 0;
+				play_mode = 0;
+
+				newData = false;
+				return 0;
 			}
 
-			newData = false;
+			String parts[3];
 
-			//s.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
+			parts[0] = input.substring(0, first);
+			parts[1] = input.substring(first + 1, second);
+			parts[2] = input.substring(second + 1);
+
+			//Serial.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
+
+			elapsed = atoi(parts[0].c_str());
+			maximum = atoi(parts[1].c_str());
+
+			if (parts[2] == "Play") {
+				play_mode = 1;
+			} else if (parts[2] == "Pause") {
+				play_mode = 2;
+			} else if (parts[2] == "Stop") {
+				play_mode = 3;
+			}
+
+			last_update = millis();
+			newData     = false;
+
+			//Serial.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
 		}
 	}
+
+	return 1;
 }
 
 /**
@@ -289,4 +298,11 @@ void init_matrix() {
 void clear_display() {
 	lmd.clear();
 	lmd.display();
+}
+
+void process_cmd(String cmd, String value) {
+	//Serial.printf("Command: %s . %s", cmd.c_str(), value.c_str());
+
+	int num = atoi(value.c_str());
+	lmd.setIntensity(num);
 }
