@@ -1,15 +1,38 @@
-BOARD = arduino:avr:diecimila:cpu=atmega328
-#BOARD = arduino:avr:mega:cpu=atmega1280
-#BOARD = arduino:avr:uno
-#BOARD = esp8266:esp8266:nodemcuv2:baud=460800
+#########################################################################
+# Arduino Makefile
+#
+# Requirements: Arduino version 1.5+ installed and in your $PATH
+#
+# Usage:
+# export BOARD=arduino:avr:uno && PORT=/dev/ttyACM0
+# make
+# make upload
+# make monitor
+#
+# Or uncomment a board/port below to always use a specific board for
+# this project
+#########################################################################
 
-###########################################################
+#BOARD = arduino:avr:diecimila:cpu=atmega328   # Arduino Duemilanove
+#BOARD = arduino:avr:mega:cpu=atmega1280       # Arduino Mega
+#BOARD = arduino:avr:uno                       # Arduino Uno
+#BOARD = esp8266:esp8266:nodemcuv2:baud=460800 # NodeMCU
+#BOARD = arduino:avr:nano:cpu=atmega328        # Arduino Nano
+#BOARD = esp8266:esp8266:d1:baud=921600
 
-PORT          = /dev/ttyUSB0
+#PORT = /dev/ttyUSB0
+#PORT = /dev/ttyACM0
+
+#########################################################################
+
 SKETCH_FILE   = $(shell ls -1 $(CURDIR)/*.ino | head -n1)
 SKETCH_NAME   = $(shell basename $(CURDIR))
-MONITOR_SPEED = $(shell egrep Serial.begin $(SKETCH_FILE) | perl -pE 's/\D+//g' | head -n1)
+MONITOR_SPEED = $(shell egrep 'Serial.begin\([0-9]+\)' $(SKETCH_FILE) | head -n1 | perl -pE 's/\D+//g')
 BUILD_DIR     = /tmp/arduino-build-$(SKETCH_NAME)/
+
+ifndef BOARD
+$(error BOARD variable is not set, unable to continue)
+endif
 
 default: display_config
 	arduino --verify --pref build.path=$(BUILD_DIR) --port $(PORT) --board $(BOARD) $(SKETCH_FILE)
@@ -30,6 +53,10 @@ display_config:
 	@echo "SKETCH NAME   : $(SKETCH_NAME)"
 	@echo "SKETCH FILE   : $(SKETCH_FILE)"
 	@echo
+
+#########################################################################
+# SPIFFS stuff is for NodeMCU
+#########################################################################
 
 MKSPIFFS    = $(shell find ~/.ardui* -type f -name mkspiffs | head -n1)
 ESPTOOL     = $(shell find ~/.ardui* -type f -name esptool | head -n1)
