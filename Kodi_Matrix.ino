@@ -102,12 +102,8 @@ void draw_elapsed() {
 	int dig4 = seconds / 10;
 	int dig5 = seconds % 10;
 
-	//char buf[40];
-	//sprintf(buf,"Elapsed: %i Total: %i\r\n", elapsed, maximum);
-	//Serial.print(buf);
-
-	//sprintf(buf,"Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
-	//Serial.print(buf);
+	//s.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
+	//s.printf("Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
 
 	// Play
 	if (play_mode == 1) {
