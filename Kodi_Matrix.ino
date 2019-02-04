@@ -1,4 +1,5 @@
 #include <LEDMatrixDriver.hpp>
+#include <EEPROM.h>
 
 #include <PrintEx.h>
 PrintEx s = Serial;
@@ -23,7 +24,7 @@ LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN);
 void setup() {
 	// init the display
 	lmd.setEnabled(true);
-	lmd.setIntensity(2); // 0 = low, 10 = high
+	lmd.setIntensity(get_intensity()); // 0 = low, 10 = high
 
 	Serial.begin(57600);
 
@@ -40,6 +41,7 @@ unsigned long last_update = 0;
 int maximum   = 0; // Total number of seconds in the media
 int elapsed   = 0; // Elapsed seconds in the media
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
+int invert    = get_invert();    // 1 = Show remaining time, 0 = Show elapsed time
 
 byte sprites[15][8] = {
 	{ 0x20,0x50,0x50,0x50,0x20,0x00,0x00,0x00 }, // 0
@@ -80,6 +82,10 @@ void loop() {
 		return;
 	}
 
+	if (!ok) {
+		return;
+	}
+
 	draw_elapsed();
 	draw_percent_bar();
 
@@ -88,9 +94,14 @@ void loop() {
 }
 
 void draw_elapsed() {
-	int hours   = elapsed / 3600;
-	int minutes = elapsed / 60;
-	int seconds = elapsed % 60;
+	int time = elapsed;
+	if (invert) {
+		time = maximum - elapsed;
+	}
+
+	int hours   = time / 3600;
+	int minutes = time / 60;
+	int seconds = time % 60;
 
 	if (hours) {
 		minutes = minutes - (hours * 60);
@@ -102,7 +113,7 @@ void draw_elapsed() {
 	int dig4 = seconds / 10;
 	int dig5 = seconds % 10;
 
-	//s.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
+	//s.printf("Elapsed: %i Total: %i\r\n", time, maximum);
 	//s.printf("Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
 
 	// Play
@@ -120,12 +131,13 @@ void draw_elapsed() {
 	// This leaves room for the Play/Pause symbol
 	int offset = 3;
 
-	if (elapsed < 3600) {
+	if (time < 3600) {
 		drawSprite( sprites[dig2], offset + 1,  0, 8, 8 );
 		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 );
 		drawSprite( sprites[10],   offset + 9,  0, 8, 8 );
 		drawSprite( sprites[dig4], offset + 11, 0, 8, 8 );
 		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 );
+		drawSprite( clear,         offset + 19, 0, 8, 8 );
 	} else {
 		drawSprite( sprites[dig1], offset + 1,  0, 8, 8 );
 		drawSprite( sprites[10],   offset + 5,  0, 8, 8 );
@@ -311,11 +323,45 @@ int process_cmd(String cmd, String value) {
 
 	if (cmd == "!intensity") {
 		int num = value.toInt();
-		lmd.setIntensity(num);
-
-		//s.printf("Setting intensity to %d\r\n", num);
+		set_intensity(num);
 
 		ret = 1;
+	} else if (cmd == "!invert") {
+		int num = value.toInt();
+		set_invert(num);
+
+		ret = 1;
+	}
+
+	return ret;
+}
+
+int set_invert(int val) {
+	// -1 is a toggle (set it to the opposite)
+	if (val == -1) {
+		val = !invert;
+	}
+	invert = val;
+
+	EEPROM.update(11,val);
+}
+
+int get_invert() {
+	int ret = EEPROM.read(11);
+
+	return ret;
+}
+
+int set_intensity(int val) {
+	lmd.setIntensity(val);
+	EEPROM.update(17,val);
+}
+
+int get_intensity() {
+	int ret = EEPROM.read(17);
+
+	if (ret > 8) {
+		ret = 2; // Default value
 	}
 
 	return ret;
