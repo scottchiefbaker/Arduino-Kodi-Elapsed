@@ -10,7 +10,7 @@ PrintEx s = Serial;
 //* DIN => Pin #13
 //* CLK => Pin #11
 //* CS  => Pin #9
-const uint8_t LEDMATRIX_CS_PIN = D2;
+const uint8_t LEDMATRIX_CS_PIN = 9;
 
 // Define LED Matrix dimensions: 32x8, 16x8, or 8x8
 const int LEDMATRIX_WIDTH    = 32;
@@ -163,9 +163,9 @@ void draw_percent_bar() {
 	}
 
 	// Add 0%, 50%, 100% indicators so you can see it at a distance
-	lmd.setPixel(0,7,true);
-	lmd.setPixel((LEDMATRIX_WIDTH / 2),7,true);
-	lmd.setPixel((LEDMATRIX_WIDTH -1),7,true);
+	//lmd.setPixel(0,7,true);
+	//lmd.setPixel((LEDMATRIX_WIDTH / 2),7,true);
+	//lmd.setPixel((LEDMATRIX_WIDTH -1),7,true);
 }
 
 // Buffer to store incoming serial commands
