@@ -29,7 +29,7 @@ void setup() {
 
 	// Show the splash screen so you know it's on
 	init_matrix();
-	delay(2000);
+	delay(500);
 
 	clear_display();
 }
