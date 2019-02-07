@@ -5,6 +5,8 @@ import time
 import serial
 import sys
 
+kodi_ip              = "192.168.5.21"
+player_id            = "1" # Video = 1, Audio = 0
 arduino_serial_port  = "/dev/ttyUSB0"
 arduino_serial_speed = 57600
 
@@ -18,11 +20,13 @@ def main():
         loop()
 
 def loop():
-    # Where to connect for the Kodi API
-    kodi_ip = "192.168.5.21"
-    url     = 'http://' + kodi_ip + '/jsonrpc?request={"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":1,"properties":["time","totaltime","percentage","speed"]},"id":"1"}'
+    global player_id
+    global kodi_ip
 
     while 1:
+        # Where to connect for the Kodi API
+        url = 'http://' + kodi_ip + '/jsonrpc?request={"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":' + player_id + ',"properties":["time","totaltime","percentage","speed"]},"id":"1"}'
+
         # This is raw bytes
         resp = urllib2.urlopen(url).read()
         # Convert bytes to a string
@@ -30,6 +34,16 @@ def loop():
 
         # String to hash
         x = json.loads(resp)
+
+        error_code = x.get("error",{}).get("code", 0)
+
+        if error_code == -32100:
+            new_player_id = get_active_player();
+            print "Error playerid " + player_id + " is not valid anymore. Switching to " + new_player_id
+            player_id = new_player_id
+
+            time.sleep(2)
+            continue
 
         #print(x);
 
@@ -60,14 +74,6 @@ def loop():
         # Write the line to the serial port
         ser.write(line + "\n")
 
-        # If it's more than 99 minutes
-        #if cur_time > 5940:
-        #    print(hours_str + ":" + mins_str)
-        #else:
-        #    mins = (hours * 60) + mins
-        #    mins_str = str(mins).zfill(2)
-        #    print(mins_str + ":" + secs_str)
-
         # Sleep X seconds
         time.sleep(0.5)
 
@@ -86,5 +92,26 @@ def run_test():
         i += 1
 
     return i
+
+def get_active_player():
+    global kodi_ip
+
+    url = 'http://' + kodi_ip + '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"Player.GetActivePlayers"}'
+
+    # This is raw bytes
+    resp = urllib2.urlopen(url).read()
+    # Convert bytes to a string
+    resp = resp.decode("utf-8")
+
+    # String to hash
+    x = json.loads(resp)
+
+    #active_id = x.get("result", {}).get(0,{}).get("playerid",1)
+    active_id = x["result"][0]["playerid"]
+    active_id = str(active_id)
+
+    print("Checking what active playerid is " + active_id)
+
+    return active_id
 
 main()
