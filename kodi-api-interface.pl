@@ -27,7 +27,8 @@ if (!$debug) {
 while (1) {
 	my $x = get_elapsed();
 
-	if (!$x->{elapsed}) {
+	# Error from get_elapsed()
+	if (!defined($x->{elapsed})) {
 		sleep(2);
 		next;
 	}
