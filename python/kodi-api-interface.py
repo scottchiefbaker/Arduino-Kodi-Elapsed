@@ -110,7 +110,7 @@ def get_active_player():
     active_id = x["result"][0]["playerid"]
     active_id = str(active_id)
 
-    print("Checking what active playerid is " + active_id)
+    print("Active playerid: " + active_id)
 
     return active_id
 
