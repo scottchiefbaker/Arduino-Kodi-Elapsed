@@ -11,22 +11,35 @@ use JSON::PP;
 ###############################################################################
 ###############################################################################
 
-my $speed     = 57600;
-my $dev       = "/dev/ttyUSB0";
-my $fh        = open_serial_port($dev,$speed);
-my $player_id = 1;
-my $kodi_ip   = "192.168.5.21";
+my $speed   = 57600;
+my $dev     = "/dev/ttyUSB0";
+my $kodi_ip = "192.168.5.21";
+my $debug   = argv("debug") || 0;
 
-print "Opening $dev @ $speed\n";
+my $player_id = 1; # 0 = Music, 1 = Video, 2 = Picture
+my $fh;
+
+if (!$debug) {
+	print "Opening $dev @ $speed\n";
+	$fh = open_serial_port($dev,$speed);
+}
 
 while (1) {
 	my $x = get_elapsed();
+
+	if (!$x->{elapsed}) {
+		sleep(2);
+		next;
+	}
 
 	# Format : Elaspsed:Total:PlayMode
 	# Example: 1278:3205:Play
 	my $cmd = sprintf("%d:%d:%s\n",$x->{elapsed},$x->{total},$x->{playmode});
 	print "$cmd";
-	$fh->print($cmd);
+
+	if (!$debug) {
+		$fh->print($cmd);
+	}
 
 	sleep(0.5);
 }
@@ -40,6 +53,16 @@ sub get_elapsed {
 	my $resp = HTTP::Tiny->new->get($url);
 	my $json = $resp->{content};
 	my $x    = decode_json($json);
+	my $ec   = $x->{error}->{code} || 0;
+
+	if ($ec == -32100) {
+		my $old = $player_id;
+		$player_id = get_active_player();
+
+		print "Switching player IDs from $old to $player_id\n";
+
+		return {};
+	}
 
 	my $res     = $x->{result};
 	my $elapsed = ($res->{time}->{hours} * 3600)      + ($res->{time}->{minutes} * 60)      + $res->{time}->{seconds};
@@ -49,7 +72,7 @@ sub get_elapsed {
 	my $ret = {};
 	$ret->{elapsed} = $elapsed;
 	$ret->{total}   = $total;
-	#$ret->{speed}   = $speed;
+	$ret->{speed}   = $speed;
 
 	if ($speed == 0 && $total == 0) {
 		$ret->{playmode} = "Stop";
@@ -64,6 +87,19 @@ sub get_elapsed {
 	return $ret;
 }
 
+
+sub get_active_player {
+    my $url = 'http://' . $kodi_ip . '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"Player.GetActivePlayers"}';
+
+	my $resp = HTTP::Tiny->new->get($url);
+	my $json = $resp->{content};
+	my $x    = decode_json($json);
+
+    my $active_id = $x->{result}->[0]->{playerid};
+
+    return $active_id;
+}
+
 sub open_serial_port {
 	my $dev   = shift();
 	my $speed = shift();
@@ -73,6 +109,9 @@ sub open_serial_port {
 	# Figure out the integer that maps to a given speed
 	# perl -E 'use IO::Tty qw( B115200 ); say B115200'
 	my $speed_map = {
+		9600   => 13,
+		19200  => 14,
+		38400  => 15,
 		57600  => 4097,
 		115200 => 4098,
 	};
@@ -185,4 +224,3 @@ sub color {
 }
 
 # vim: tabstop=4 shiftwidth=4 autoindent softtabstop=4
-
