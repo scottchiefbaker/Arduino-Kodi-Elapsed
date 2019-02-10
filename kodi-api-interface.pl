@@ -7,27 +7,67 @@ use POSIX;
 use HTTP::Tiny;
 use Time::HiRes qw(sleep);
 use JSON::PP;
+use POSIX qw(setsid);
 
 ###############################################################################
 ###############################################################################
 
-my $speed   = 57600;
-my $dev     = "/dev/ttyUSB0";
-my $kodi_ip = "192.168.5.21";
-my $debug   = argv("debug") || 0;
-
+my $speed     = 57600;
+my $dev       = "/dev/ttyUSB0";
+my $kodi_ip   = "192.168.5.21";
+my $debug     = argv("debug")  || 0;
+my $start     = argv("start")  || 0;
+my $daemon    = $start;
+my $pid_file  = "/tmp/kodi-api.pid";
 my $player_id = 1; # 0 = Music, 1 = Video, 2 = Picture
-my $fh;
 
+my $fh;
 if (!$debug) {
 	print "Opening $dev @ $speed\n";
 	$fh = open_serial_port($dev,$speed);
 }
 
+# Process command line arguments
 if (argv("test")) {
 	test_mode();
 
 	exit;
+} elsif ($daemon) {
+	my $already_running = is_running();
+	if ($already_running) {
+		exit(5);
+	}
+
+	chdir '/';
+	umask 0;
+	open(STDIN,  "<", "/dev/null");
+	open(STDERR, ">", ">/dev/null");
+	my $pid = fork;
+
+	if ($pid) {
+		print "Starting daemon: pid $pid\n";
+		open(my $fh, ">", $pid_file) or die("Cannot write to pid file $pid_file");
+		print $fh $pid;
+	}
+
+	exit if $pid;
+	setsid;
+} elsif (argv("stop")) {
+	my $pid = is_running();
+
+	print "Stopping daemon: pid $pid\n";
+	my $ok = kill('KILL', $pid);
+
+	if ($ok) {
+		unlink($pid_file);
+	} else {
+		die("Unable to stop daemon\n");
+	}
+
+	print $fh "0:0:Stop\n";
+	sleep(1);
+
+	exit();
 }
 
 while (1) {
@@ -42,7 +82,10 @@ while (1) {
 	# Format : Elaspsed:Total:PlayMode
 	# Example: 1278:3205:Play
 	my $cmd = sprintf("%d:%d:%s\n",$x->{elapsed},$x->{total},$x->{playmode});
-	print "$cmd";
+
+	if (!$daemon) {
+		print "$cmd";
+	}
 
 	if (!$debug) {
 		$fh->print($cmd);
@@ -89,6 +132,30 @@ sub get_elapsed {
 		$ret->{playmode} = "Pause";
 	} else {
 		$ret->{playmode} = "???";
+	}
+
+	return $ret;
+}
+
+# Check if the daemon is already running
+# Return 0 if not, and the pid number if it is
+sub is_running {
+	if (!-r($pid_file)) {
+		return 0;
+	}
+
+	open(my $fh, "<", $pid_file);
+	my $line = <$fh>;
+	my $pid  = trim($line);
+
+	# Check it the pid is active
+	my $running = kill(0, $pid);
+
+	my $ret;
+	if ($running) {
+		$ret = $pid;
+	} else {
+		$ret = 0;
 	}
 
 	return $ret;
