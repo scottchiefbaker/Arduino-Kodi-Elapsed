@@ -26,59 +26,19 @@ my $player_id = 1; # 0 = Music, 1 = Video, 2 = Picture
 my $fh;
 
 if (!$debug) {
-	print "Opening $dev @ $speed\n";
+	print "Connecting to Arduino on $dev @ $speed\n";
 	$fh = open_serial_port($dev,$speed);
 }
 
-# Process command line arguments
+# Test mdoe
 if (argv("test")) {
 	test_mode();
-
-	exit;
 # Start the daemon up
-} elsif ($daemon) {
-	my $already_running = is_running();
-	if ($already_running) {
-		exit(5);
-	}
-
-	# Simple daemon stuff borrowed from: https://www.linuxquestions.org/questions/programming-9/how-to-run-a-perl-script-as-a-daemon-109978/
-	chdir '/';
-	umask 0;
-	open(STDIN,  "<", "/dev/null");
-	open(STDERR, ">", ">/dev/null");
-	my $pid = fork;
-
-	if ($pid) {
-		print "Starting daemon: pid $pid\n";
-		open(my $fh, ">", $pid_file) or die("Cannot write to pid file $pid_file");
-		print $fh $pid;
-	}
-
-	exit if $pid;
-	setsid;
+} elsif ($start) {
+	start_daemon();
 # Stop the daemon
 } elsif (argv("stop")) {
-	my $pid = is_running();
-
-	if (!$pid) {
-		exit(9);
-	}
-
-	print "Stopping daemon: pid $pid\n";
-	my $ok = kill('KILL', $pid);
-
-	if ($ok) {
-		unlink($pid_file);
-	} else {
-		die("Unable to stop daemon\n");
-	}
-
-	# Clear the display
-	send_command(0,0,"Stop");
-	sleep(0.4);
-
-	exit();
+	stop_daemon();
 }
 
 while (1) {
@@ -105,6 +65,52 @@ while (1) {
 
 ###############################################################################
 ###############################################################################
+
+sub stop_daemon {
+	my $pid = is_running();
+
+	if (!$pid) {
+		exit(9);
+	}
+
+	print "Stopping daemon: pid $pid\n";
+	my $ok = kill('KILL', $pid);
+
+	if ($ok) {
+		unlink($pid_file);
+	} else {
+		die("Unable to stop daemon\n");
+	}
+
+	# Clear the display
+	send_command(0,0,"Stop");
+	sleep(0.4);
+
+	exit();
+}
+
+sub start_daemon {
+	my $already_running = is_running();
+	if ($already_running) {
+		exit(5);
+	}
+
+	# Simple daemon stuff borrowed from: https://www.linuxquestions.org/questions/programming-9/how-to-run-a-perl-script-as-a-daemon-109978/
+	chdir '/';
+	umask 0;
+	open(STDIN,  "<", "/dev/null");
+	open(STDERR, ">", ">/dev/null");
+	my $pid = fork;
+
+	if ($pid) {
+		print "Starting daemon: pid $pid\n";
+		open(my $fh, ">", $pid_file) or die("Cannot write to pid file $pid_file");
+		print $fh $pid;
+	}
+
+	exit if $pid;
+	setsid;
+}
 
 sub get_elapsed {
 	my $url = 'http://' . $kodi_ip . '/jsonrpc?request={"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":' . $player_id . ',"properties":["time","totaltime","percentage","speed"]},"id":"1"}';
@@ -178,6 +184,8 @@ sub test_mode {
 
 		sleep(0.05);
 	}
+
+	exit(0);
 }
 
 # Send a command to the Arduino via the serial port
