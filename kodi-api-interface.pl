@@ -113,15 +113,28 @@ sub start_daemon {
 }
 
 sub get_elapsed {
+	while ($player_id < 0) {
+		print "Error grabbing player_id... pausing for 1 second\n";
+		$player_id = get_active_player();
+
+		sleep(1);
+	}
+
 	my $url = 'http://' . $kodi_ip . '/jsonrpc?request={"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":' . $player_id . ',"properties":["time","totaltime","percentage","speed"]},"id":"1"}';
 
 	my $resp = HTTP::Tiny->new->get($url);
 	my $json = $resp->{content};
-	my $x    = decode_json($json);
+
+	my $x;
+	eval { $x = decode_json($json); };
+
 	my $ec   = $x->{error}->{code} || 0;
 
+	# If there is an error, try and see if the player_id has changed (ie. video -> music)
 	if ($ec == -32100) {
-		my $old = $player_id;
+		sleep(1);
+
+		my $old    = $player_id;
 		$player_id = get_active_player();
 
 		print "Switching player IDs from $old to $player_id\n";
@@ -207,9 +220,11 @@ sub get_active_player {
 
 	my $resp = HTTP::Tiny->new->get($url);
 	my $json = $resp->{content};
-	my $x    = decode_json($json);
 
-    my $active_id = $x->{result}->[0]->{playerid};
+	my $x;
+	eval { $x = decode_json($json); };
+
+    my $active_id = $x->{result}->[0]->{playerid} // -1;
 
     return $active_id;
 }
