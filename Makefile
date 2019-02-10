@@ -23,6 +23,10 @@
 #PORT = /dev/ttyUSB0
 #PORT = /dev/ttyACM0
 
+# Default board/port if nothing is set in $ENV
+BOARD ?= arduino:avr:diecimila:cpu=atmega328
+PORT  ?= /dev/ttyUSB0
+
 #########################################################################
 
 SKETCH_FILE   = $(shell ls -1 $(CURDIR)/*.ino | head -n1)
