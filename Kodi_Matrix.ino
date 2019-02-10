@@ -118,20 +118,21 @@ void draw_elapsed() {
 
 	// Play
 	if (play_mode == 1) {
-		drawSprite( sprites[11], -1, 0, 8, 8 );
+		drawSprite( sprites[11], 0, 0, 8, 8 );
 	// Pause
 	} else if (play_mode == 2) {
-		drawSprite( sprites[12], -1, 0, 8, 8 );
+		drawSprite( sprites[12], 0, 0, 8, 8 );
 	// Stop
 	} else if (play_mode == 3) {
-		drawSprite( sprites[13], -1, 0, 8, 8 );
+		drawSprite( sprites[13], 0, 0, 8, 8 );
 	}
 
 	// Number of pixels to start the numbers (from the left)
 	// This leaves room for the Play/Pause symbol
-	int offset = 3;
 
 	if (time < 3600) {
+		int offset = 12;
+
 		drawSprite( sprites[dig2], offset + 1,  0, 8, 8 );
 		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 );
 		drawSprite( sprites[10],   offset + 9,  0, 8, 8 );
@@ -139,6 +140,8 @@ void draw_elapsed() {
 		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 );
 		drawSprite( clear,         offset + 19, 0, 8, 8 );
 	} else {
+		int offset = 6;
+
 		drawSprite( sprites[dig1], offset + 1,  0, 8, 8 );
 		drawSprite( sprites[10],   offset + 5,  0, 8, 8 );
 		drawSprite( sprites[dig2], offset + 7,  0, 8, 8 );
