@@ -24,6 +24,12 @@ if (!$debug) {
 	$fh = open_serial_port($dev,$speed);
 }
 
+if (argv("test")) {
+	test_mode();
+
+	exit;
+}
+
 while (1) {
 	my $x = get_elapsed();
 
@@ -88,6 +94,15 @@ sub get_elapsed {
 	return $ret;
 }
 
+sub test_mode {
+	my $max = 6000;
+	for (my $i = 1 ; $i < $max; $i++ ) {
+		my $cmd = "$i:$max:Play\n";
+
+		$fh->print($cmd);
+		sleep(0.05);
+	}
+}
 
 sub get_active_player {
     my $url = 'http://' . $kodi_ip . '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"Player.GetActivePlayers"}';
@@ -192,36 +207,6 @@ BEGIN {
 		printf("Died at %2\$s line #%3\$s\n",caller());
 		exit(15);
 	}
-}
-
-# String format: '115', '165_bold', '10_on_140', 'reset', 'on_173'
-sub color {
-	my $str = shift();
-
-	# If we're NOT connected to a an interactive terminal don't do color
-	if (-t STDOUT == 0) { return ''; }
-
-	# No string sent in, so we just reset
-	if (!length($str) || $str eq 'reset') { return "\e[0m"; }
-
-	# Some predefined colors
-	my %color_map = qw(red 160 blue 21 green 34 yellow 226 orange 214 purple 93 white 15 black 0);
-	$str =~ s|([A-Za-z]+)|$color_map{$1} // $1|eg;
-
-	# Get foreground/background and any commands
-	my ($fc,$cmd) = $str =~ /(\d+)?_?(\w+)?/g;
-	my ($bc)      = $str =~ /on_?(\d+)/g;
-
-	# Some predefined commands
-	my %cmd_map = qw(bold 1 italic 3 underline 4 blink 5 inverse 7);
-	my $cmd_num = $cmd_map{$cmd // 0};
-
-	my $ret = '';
-	if ($cmd_num)     { $ret .= "\e[${cmd_num}m"; }
-	if (defined($fc)) { $ret .= "\e[38;5;${fc}m"; }
-	if (defined($bc)) { $ret .= "\e[48;5;${bc}m"; }
-
-	return $ret;
 }
 
 # vim: tabstop=4 shiftwidth=4 autoindent softtabstop=4
