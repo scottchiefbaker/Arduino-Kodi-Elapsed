@@ -15,13 +15,16 @@ use POSIX qw(setsid);
 my $speed     = 57600;
 my $dev       = "/dev/ttyUSB0";
 my $kodi_ip   = "192.168.5.21";
+
+################################################
+
 my $debug     = argv("debug")  || 0;
 my $start     = argv("start")  || 0;
 my $daemon    = $start;
 my $pid_file  = "/tmp/kodi-api.pid";
 my $player_id = 1; # 0 = Music, 1 = Video, 2 = Picture
-
 my $fh;
+
 if (!$debug) {
 	print "Opening $dev @ $speed\n";
 	$fh = open_serial_port($dev,$speed);
@@ -32,12 +35,14 @@ if (argv("test")) {
 	test_mode();
 
 	exit;
+# Start the daemon up
 } elsif ($daemon) {
 	my $already_running = is_running();
 	if ($already_running) {
 		exit(5);
 	}
 
+	# Simple daemon stuff borrowed from: https://www.linuxquestions.org/questions/programming-9/how-to-run-a-perl-script-as-a-daemon-109978/
 	chdir '/';
 	umask 0;
 	open(STDIN,  "<", "/dev/null");
@@ -52,6 +57,7 @@ if (argv("test")) {
 
 	exit if $pid;
 	setsid;
+# Stop the daemon
 } elsif (argv("stop")) {
 	my $pid = is_running();
 
@@ -68,6 +74,7 @@ if (argv("test")) {
 		die("Unable to stop daemon\n");
 	}
 
+	# Clear the display
 	send_command(0,0,"Stop");
 	sleep(0.4);
 
@@ -83,12 +90,12 @@ while (1) {
 		next;
 	}
 
-	# Format : Elaspsed:Total:PlayMode
-	# Example: 1278:3205:Play
+	# Send the command to the serial port
 	if (!$debug) {
 		send_command($x->{elapsed},$x->{total},$x->{playmode});
 	}
 
+	# Print out the stats
 	if (!$daemon) {
 		print "$x->{elapsed}:$x->{total}:$x->{playmode}\n";
 	}
@@ -163,6 +170,7 @@ sub is_running {
 	return $ret;
 }
 
+# Do a test of the display (real fast count up)
 sub test_mode {
 	my $max = 6000;
 	for (my $i = 1 ; $i < $max; $i++ ) {
@@ -172,16 +180,20 @@ sub test_mode {
 	}
 }
 
+# Send a command to the Arduino via the serial port
 sub send_command {
 	my $elapsed   = shift();
 	my $total     = shift();
 	my $play_mode = shift();
 
+	# Format : Elaspsed:Total:PlayMode
+	# Example: 1278:3205:Play
 	my $cmd = sprintf("%d:%d:%s\n", $elapsed, $total, $play_mode);
 
 	$fh->print($cmd);
 }
 
+# Figure out which player Kodi is using (0 = Audio, 1 = Video, 2 = Picture)
 sub get_active_player {
     my $url = 'http://' . $kodi_ip . '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"Player.GetActivePlayers"}';
 
@@ -194,6 +206,7 @@ sub get_active_player {
     return $active_id;
 }
 
+# Open a serial port at a given speed and return a filehandle
 sub open_serial_port {
 	my $dev   = shift();
 	my $speed = shift();
