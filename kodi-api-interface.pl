@@ -55,6 +55,10 @@ if (argv("test")) {
 } elsif (argv("stop")) {
 	my $pid = is_running();
 
+	if (!$pid) {
+		exit(9);
+	}
+
 	print "Stopping daemon: pid $pid\n";
 	my $ok = kill('KILL', $pid);
 
@@ -64,8 +68,8 @@ if (argv("test")) {
 		die("Unable to stop daemon\n");
 	}
 
-	print $fh "0:0:Stop\n";
-	sleep(1);
+	send_command(0,0,"Stop");
+	sleep(0.4);
 
 	exit();
 }
@@ -81,14 +85,12 @@ while (1) {
 
 	# Format : Elaspsed:Total:PlayMode
 	# Example: 1278:3205:Play
-	my $cmd = sprintf("%d:%d:%s\n",$x->{elapsed},$x->{total},$x->{playmode});
-
-	if (!$daemon) {
-		print "$cmd";
+	if (!$debug) {
+		send_command($x->{elapsed},$x->{total},$x->{playmode});
 	}
 
-	if (!$debug) {
-		$fh->print($cmd);
+	if (!$daemon) {
+		print "$x->{elapsed}:$x->{total}:$x->{playmode}\n";
 	}
 
 	sleep(0.5);
@@ -164,11 +166,20 @@ sub is_running {
 sub test_mode {
 	my $max = 6000;
 	for (my $i = 1 ; $i < $max; $i++ ) {
-		my $cmd = "$i:$max:Play\n";
+		send_command($i,$max,"Play");
 
-		$fh->print($cmd);
 		sleep(0.05);
 	}
+}
+
+sub send_command {
+	my $elapsed   = shift();
+	my $total     = shift();
+	my $play_mode = shift();
+
+	my $cmd = sprintf("%d:%d:%s\n", $elapsed, $total, $play_mode);
+
+	$fh->print($cmd);
 }
 
 sub get_active_player {
