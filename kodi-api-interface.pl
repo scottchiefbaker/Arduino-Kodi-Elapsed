@@ -128,7 +128,13 @@ sub get_elapsed {
 	my $x;
 	eval { $x = decode_json($json); };
 
-	my $ec   = $x->{error}->{code} || 0;
+	my $ec  = $x->{error}->{code} || 0;
+	my $res = $x->{result}        || "";
+
+	# No result or error code something went wrong
+	if (!$res && !$ec) {
+		return {};
+	}
 
 	# If there is an error, try and see if the player_id has changed (ie. video -> music)
 	if ($ec == -32100) {
@@ -142,7 +148,6 @@ sub get_elapsed {
 		return {};
 	}
 
-	my $res     = $x->{result};
 	my $elapsed = ($res->{time}->{hours} * 3600)      + ($res->{time}->{minutes} * 60)      + $res->{time}->{seconds};
 	my $total   = ($res->{totaltime}->{hours} * 3600) + ($res->{totaltime}->{minutes} * 60) + $res->{totaltime}->{seconds};
 	my $speed   = $res->{speed};
