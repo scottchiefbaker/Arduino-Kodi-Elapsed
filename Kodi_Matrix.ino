@@ -11,7 +11,7 @@ PrintEx s = Serial;
 //* DIN => Pin #13
 //* CLK => Pin #11
 //* CS  => Pin #9
-const uint8_t LEDMATRIX_CS_PIN = 9;
+const uint8_t LEDMATRIX_CS_PIN = 5;
 
 // Define LED Matrix dimensions: 32x8, 16x8, or 8x8
 const int LEDMATRIX_WIDTH    = 32;
@@ -20,16 +20,25 @@ const int LEDMATRIX_SEGMENTS = LEDMATRIX_WIDTH / LEDMATRIX_HEIGHT;
 
 // If the matrixes are diplaying in the wrong direction (right to left) change
 // this to true
-bool display_reverse = false;
+bool display_reverse = true;
 // The LEDMatrixDriver class instance
 LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, display_reverse);
 
 void setup() {
+	Serial.begin(57600);
+
+#if defined(ESP8266) || defined(ESP32)
+	int ok = EEPROM.begin(64);
+	if (ok) {
+		Serial.print("EEPROM initialzed\r\n");
+	} else {
+		Serial.print("EEPROM failed to initialze\r\n");
+	}
+#endif
+
 	// init the display
 	lmd.setEnabled(true);
 	lmd.setIntensity(get_intensity()); // 0 = low, 10 = high
-
-	Serial.begin(57600);
 
 	// Show the splash screen so you know it's on
 	init_matrix();
@@ -349,7 +358,10 @@ int set_invert(int val) {
 	}
 	invert = val;
 
-	EEPROM.update(11,val);
+	EEPROM.write(11,val);
+#if defined(ESP8266) || defined(ESP32)
+	EEPROM.commit();
+#endif
 }
 
 int get_invert() {
@@ -360,7 +372,11 @@ int get_invert() {
 
 int set_intensity(int val) {
 	lmd.setIntensity(val);
-	EEPROM.update(17,val);
+
+	EEPROM.write(17,val);
+#if defined(ESP8266) || defined(ESP32)
+	EEPROM.commit();
+#endif
 }
 
 int get_intensity() {
