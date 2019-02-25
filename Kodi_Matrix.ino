@@ -20,9 +20,9 @@ const int LEDMATRIX_SEGMENTS = LEDMATRIX_WIDTH / LEDMATRIX_HEIGHT;
 
 // If the matrixes are diplaying in the wrong direction (right to left) change
 // this to true
-bool reverse = false;
+bool display_reverse = false;
 // The LEDMatrixDriver class instance
-LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, reverse);
+LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, display_reverse);
 
 void setup() {
 	// init the display
