@@ -24,36 +24,13 @@ bool display_reverse = true;
 // The LEDMatrixDriver class instance
 LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, display_reverse);
 
-void setup() {
-	Serial.begin(57600);
-
-#if defined(ESP8266) || defined(ESP32)
-	int ok = EEPROM.begin(64);
-	if (ok) {
-		Serial.print("EEPROM initialzed\r\n");
-	} else {
-		Serial.print("EEPROM failed to initialze\r\n");
-	}
-#endif
-
-	// init the display
-	lmd.setEnabled(true);
-	lmd.setIntensity(get_intensity()); // 0 = low, 10 = high
-
-	// Show the splash screen so you know it's on
-	init_matrix();
-	delay(500);
-
-	clear_display();
-}
-
 // Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
 
 int maximum   = 0; // Total number of seconds in the media
 int elapsed   = 0; // Elapsed seconds in the media
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
-int invert    = get_invert();    // 1 = Show remaining time, 0 = Show elapsed time
+int invert    = 0; // 1 = Show remaining time, 0 = Show elapsed time
 
 byte sprites[15][8] = {
 	{ 0x20,0x50,0x50,0x50,0x20,0x00,0x00,0x00 }, // 0
@@ -387,4 +364,28 @@ int get_intensity() {
 	}
 
 	return ret;
+}
+
+void setup() {
+	Serial.begin(57600);
+
+#if defined(ESP8266) || defined(ESP32)
+	int ok = EEPROM.begin(64);
+	if (ok) {
+		Serial.print("EEPROM initialzed\r\n");
+	} else {
+		Serial.print("EEPROM failed to initialze\r\n");
+	}
+#endif
+
+	// init the display
+	lmd.setEnabled(true);
+	lmd.setIntensity(get_intensity()); // 0 = low, 10 = high
+	invert = get_invert();
+
+	// Show the splash screen so you know it's on
+	init_matrix();
+	delay(500);
+
+	clear_display();
 }
