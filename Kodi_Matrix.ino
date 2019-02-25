@@ -145,12 +145,12 @@ void draw_elapsed() {
 	if (time < 3600) {
 		int offset = 12;
 
+		drawSprite( clear,                  6,  0, 8, 8 );
 		drawSprite( sprites[dig2], offset + 1,  0, 8, 8 );
 		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 );
 		drawSprite( sprites[10],   offset + 9,  0, 8, 8 );
 		drawSprite( sprites[dig4], offset + 11, 0, 8, 8 );
 		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 );
-		drawSprite( clear,         offset + 19, 0, 8, 8 );
 	} else {
 		int offset = 6;
 
