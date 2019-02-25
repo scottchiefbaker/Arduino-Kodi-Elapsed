@@ -31,6 +31,7 @@ int maximum   = 0; // Total number of seconds in the media
 int elapsed   = 0; // Elapsed seconds in the media
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 int invert    = 0; // 1 = Show remaining time, 0 = Show elapsed time
+int debug     = 0; // Enable debug output on the serial port
 
 byte sprites[15][8] = {
 	{ 0x20,0x50,0x50,0x50,0x20,0x00,0x00,0x00 }, // 0
@@ -223,24 +224,35 @@ int process_serial_commands() {
 			//s.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
 
 			if (parts[0].startsWith("!")) {
-				int ok = process_cmd(parts[0],parts[1]);
-			} else {
-				elapsed = parts[0].toInt();
-				maximum = parts[1].toInt();
+				int ok = process_cmd(parts[0], parts[1]);
 
+				if (debug) {
+					s.printf("Command: %s = %s\r\n", parts[0], parts[1]);
+				}
+			} else {
 				if (parts[2] == "Play") {
 					play_mode = 1;
 				} else if (parts[2] == "Pause") {
 					play_mode = 2;
 				} else if (parts[2] == "Stop") {
 					play_mode = 3;
+				} else {
+					play_mode = 0;
+				}
+
+				if (play_mode > 0) {
+					elapsed = parts[0].toInt();
+					maximum = parts[1].toInt();
 				}
 
 				last_update = millis();
+
+				if (debug) {
+					s.printf("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
+				}
 			}
 
 			newData = false;
-			//s.printf("Elapsed: %i Total: %i\r\n", elapsed, maximum);
 		}
 	}
 
@@ -323,6 +335,8 @@ int process_cmd(String cmd, String value) {
 		set_invert(num);
 
 		ret = 1;
+	} else if (cmd == "!debug") {
+		debug = value.toInt(); // Enable/disable global debug
 	}
 
 	return ret;
