@@ -384,12 +384,7 @@ void setup() {
 	Serial.begin(57600);
 
 #if defined(ESP8266) || defined(ESP32)
-	int ok = EEPROM.begin(64);
-	if (ok) {
-		Serial.print("EEPROM initialzed\r\n");
-	} else {
-		Serial.print("EEPROM failed to initialze\r\n");
-	}
+	EEPROM.begin(64);
 #endif
 
 	// init the display
