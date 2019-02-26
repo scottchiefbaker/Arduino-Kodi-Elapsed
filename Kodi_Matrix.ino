@@ -227,7 +227,7 @@ int process_serial_commands() {
 				int ok = process_cmd(parts[0], parts[1]);
 
 				if (debug) {
-					s.printf("Command: %s = %s\r\n", parts[0], parts[1]);
+					s.printf("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
 				}
 			} else {
 				if (parts[2] == "Play") {
