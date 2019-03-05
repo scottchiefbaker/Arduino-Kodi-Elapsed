@@ -76,6 +76,8 @@ void loop() {
 		return;
 	}
 
+	clear_display();
+
 	draw_elapsed();
 	draw_percent_bar();
 
