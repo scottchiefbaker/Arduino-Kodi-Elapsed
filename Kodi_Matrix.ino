@@ -76,7 +76,7 @@ void loop() {
 		return;
 	}
 
-	clear_display();
+	lmd.clear();
 
 	draw_elapsed();
 	draw_percent_bar();
