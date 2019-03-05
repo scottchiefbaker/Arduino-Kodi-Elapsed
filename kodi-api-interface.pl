@@ -263,6 +263,10 @@ sub open_serial_port {
 	$attr->setispeed($speed_int);
 	$attr->setattr($fh->fileno);
 
+	# Disable nl -> cr conversions
+	# stty --file /dev/ttyUSB0 -onlcr
+	$attr->setoflag($attr->getoflag & ~4);
+
 	$fh->autoflush;
 
 	return $fh;
