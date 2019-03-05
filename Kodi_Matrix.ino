@@ -125,22 +125,25 @@ void draw_elapsed() {
 	if (time < 3600) {
 		int offset = 12;
 
-		drawSprite( clear,                  6,  0, 8, 8 );
-		drawSprite( sprites[dig2], offset + 1,  0, 8, 8 );
-		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 );
-		drawSprite( sprites[10],   offset + 9,  0, 8, 8 );
-		drawSprite( sprites[dig4], offset + 11, 0, 8, 8 );
-		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 );
+		// Don't draw the first leading zero
+		if (dig2 != 0) {
+			drawSprite( sprites[dig2], offset + 1,  0, 8, 8 ); // X_:__
+		}
+
+		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 ); // _X:__
+		drawSprite( sprites[10],   offset + 9,  0, 8, 8 ); // __:__ (the colon)
+		drawSprite( sprites[dig4], offset + 11, 0, 8, 8 ); // __:X_
+		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 ); // __:_X
 	} else {
 		int offset = 6;
 
-		drawSprite( sprites[dig1], offset + 1,  0, 8, 8 );
-		drawSprite( sprites[10],   offset + 5,  0, 8, 8 );
-		drawSprite( sprites[dig2], offset + 7,  0, 8, 8 );
-		drawSprite( sprites[dig3], offset + 11, 0, 8, 8 );
-		drawSprite( sprites[10],   offset + 15, 0, 8, 8 );
-		drawSprite( sprites[dig4], offset + 17, 0, 8, 8 );
-		drawSprite( sprites[dig5], offset + 21, 0, 8, 8 );
+		drawSprite( sprites[dig1], offset + 1,  0, 8, 8 ); // X:__:__
+		drawSprite( sprites[10],   offset + 5,  0, 8, 8 ); // _:__:__ (the first colon)
+		drawSprite( sprites[dig2], offset + 7,  0, 8, 8 ); // _:X_:__
+		drawSprite( sprites[dig3], offset + 11, 0, 8, 8 ); // _:_X:__
+		drawSprite( sprites[10],   offset + 15, 0, 8, 8 ); // _:__:__ (the second colon)
+		drawSprite( sprites[dig4], offset + 17, 0, 8, 8 ); // _:__:X_
+		drawSprite( sprites[dig5], offset + 21, 0, 8, 8 ); // _:__:_X
 	}
 }
 
