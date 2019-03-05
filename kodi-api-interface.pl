@@ -20,6 +20,7 @@ my $kodi_ip   = "192.168.5.21";
 
 my $debug     = argv("debug")  || 0;
 my $start     = argv("start")  || 0;
+my $delay     = argv("delay")  || 0.05;
 my $daemon    = $start;
 my $pid_file  = "/tmp/kodi-api.pid";
 my $player_id = 1; # 0 = Music, 1 = Video, 2 = Picture
@@ -200,7 +201,7 @@ sub test_mode {
 	for (my $i = 1 ; $i < $max; $i++ ) {
 		send_command($i,$max,"Play");
 
-		sleep(0.05);
+		sleep($delay);
 	}
 
 	exit(0);
