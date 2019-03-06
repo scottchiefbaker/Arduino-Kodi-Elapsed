@@ -215,7 +215,7 @@ sub send_command {
 
 	# Format : Elaspsed:Total:PlayMode
 	# Example: 1278:3205:Play
-	my $cmd = sprintf("%d:%d:%s\n", $elapsed, $total, $play_mode);
+	my $cmd = sprintf("<%d:%d:%s>\n", $elapsed, $total, $play_mode);
 
 	$fh->print($cmd);
 }
@@ -262,10 +262,6 @@ sub open_serial_port {
 	$attr->getattr($fh->fileno);
 	$attr->setispeed($speed_int);
 	$attr->setattr($fh->fileno);
-
-	# Disable nl -> cr conversions
-	# stty --file /dev/ttyUSB0 -onlcr
-	$attr->setoflag($attr->getoflag & ~4);
 
 	$fh->autoflush;
 

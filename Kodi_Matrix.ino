@@ -179,89 +179,101 @@ void draw_percent_bar() {
 }
 
 // Buffer to store incoming serial commands
-const byte numChars = 50;
+const byte numChars = 30;
 char receivedChars[numChars]; // an array to store the received data
-boolean newData = false;
 
 int process_serial_commands() {
-	static byte ndx = 0;
-	char endMarker = '\n';
-	char rc;
+    static boolean recvInProgress = false;
+    static byte ndx               = 0;
+    char startMarker              = '<';
+    char endMarker                = '>';
+    char rc;
 
-	while (Serial.available() > 0 && newData == false) {
-		rc = Serial.read();
+    while (Serial.available() > 0) {
+        rc = Serial.read();
+		//Serial.print(rc);
 
-		if (rc != endMarker) {
-			receivedChars[ndx] = rc;
-			ndx++;
-			if (ndx >= numChars) {
-				ndx = numChars - 1;
-			}
-		} else {
-			receivedChars[ndx] = '\0'; // terminate the string
-			ndx                = 0;
-			newData            = true;
-			//s.printf("Got: %s\r\n", receivedChars);
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
 
-			// Input format is: "3190:4940:Play"
-			// Input format is: "!command:value"
+				//s.printf(buf,"Adding '%c' ... string is now %d chars long\r\n", rc, ndx);
+            } else {
+                receivedChars[ndx] = '\0'; // terminate the string
+				String input = receivedChars;
 
-			String input = receivedChars;
+				//s.printf(buf,"Input: '%s'\r\n", receivedChars);
 
-			int first  = input.indexOf(":");
-			int second = input.indexOf(":", first + 1);
+				// Reset all the variables so we start fresh
+                memset(receivedChars, 0, numChars);
+                recvInProgress = false;
+                ndx            = 0;
 
-			if (first == -1) {
-				elapsed   = 0;
-				maximum   = 0;
-				play_mode = 0;
+				int first  = input.indexOf(":");
+				int second = input.indexOf(":", first + 1);
 
-				newData = false;
-				return 0;
-			}
-
-			String parts[3];
-
-			parts[0] = input.substring(0, first);
-			parts[1] = input.substring(first + 1, second);
-			parts[2] = input.substring(second + 1);
-
-			//s.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
-
-			if (parts[0].startsWith("!")) {
-				int ok = process_cmd(parts[0], parts[1]);
-
-				if (debug) {
-					s.printf("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
-				}
-			} else {
-				if (parts[2] == "Play") {
-					play_mode = 1;
-				} else if (parts[2] == "Pause") {
-					play_mode = 2;
-				} else if (parts[2] == "Stop") {
-					play_mode = 3;
-				} else {
+				// If there is no colon at all
+				if (first == -1) {
+					elapsed   = 0;
+					maximum   = 0;
 					play_mode = 0;
+
+					return 0;
 				}
 
-				if (play_mode > 0) {
-					elapsed = parts[0].toInt();
-					maximum = parts[1].toInt();
-				}
+				String parts[3];
 
-				last_update = millis();
+				parts[0] = input.substring(0, first);
+				parts[1] = input.substring(first + 1, second);
+				parts[2] = input.substring(second + 1);
 
 				if (debug) {
-					s.printf("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
+					s.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
 				}
-			}
 
-			newData = false;
+				if (parts[0].startsWith("!")) {
+					int ok = process_cmd(parts[0], parts[1]);
+
+					if (debug) {
+						s.printf("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
+					}
+				} else {
+					if (parts[2] == "Play") {
+						play_mode = 1;
+					} else if (parts[2] == "Pause") {
+						play_mode = 2;
+					} else if (parts[2] == "Stop") {
+						play_mode = 3;
+					} else {
+						play_mode = 0;
+					}
+
+					if (play_mode > 0) {
+						elapsed = parts[0].toInt();
+						maximum = parts[1].toInt();
+					}
+
+					last_update = millis();
+
+					if (debug) {
+						s.printf("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
+					}
+				}
+
+				return 1;
+			}
+		}
+
+		else if (rc == startMarker) {
+			recvInProgress = true;
 		}
 	}
 
-	return 1;
+    return 0;
 }
 
 /**
