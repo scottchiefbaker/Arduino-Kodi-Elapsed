@@ -56,11 +56,6 @@ while (1) {
 		send_command($x->{elapsed},$x->{total},$x->{playmode});
 	}
 
-	# Print out the stats
-	if (!$daemon) {
-		print "$x->{elapsed}:$x->{total}:$x->{playmode}\n";
-	}
-
 	sleep(0.45);
 }
 
@@ -216,6 +211,11 @@ sub send_command {
 	# Format : Elaspsed:Total:PlayMode
 	# Example: 1278:3205:Play
 	my $cmd = sprintf("<%d:%d:%s>\n", $elapsed, $total, $play_mode);
+
+	# Print out the stats
+	if (!$daemon) {
+		print $cmd;
+	}
 
 	$fh->print($cmd);
 }
