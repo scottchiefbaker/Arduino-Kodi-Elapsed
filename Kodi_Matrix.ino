@@ -353,7 +353,10 @@ int process_cmd(String cmd, String value) {
 
 		ret = 1;
 	} else if (cmd == "!debug") {
-		debug = value.toInt(); // Enable/disable global debug
+		int num = value.toInt();
+		debug   = num; // Enable/disable global debug
+
+		ret = 1;
 	}
 
 	return ret;
