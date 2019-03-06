@@ -24,8 +24,8 @@
 #PORT = /dev/ttyACM0
 
 # Default board/port if nothing is set in $ENV
-BOARD ?= arduino:avr:diecimila:cpu=atmega328
-PORT  ?= /dev/ttyUSB0
+BOARD = arduino:avr:nano:cpu=atmega328old
+PORT  = /dev/ttyUSB0
 
 #########################################################################
 
