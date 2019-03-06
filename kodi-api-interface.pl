@@ -33,7 +33,9 @@ if (!$debug) {
 
 # Test mdoe
 if (argv("test")) {
-	test_mode();
+	test_mode("long");
+} elsif (argv("short_test")) {
+	test_mode("short");
 # Start the daemon up
 } elsif ($start) {
 	start_daemon();
@@ -192,11 +194,25 @@ sub is_running {
 
 # Do a test of the display (real fast count up)
 sub test_mode {
-	my $max = 6000;
-	for (my $i = 1 ; $i < $max; $i++ ) {
-		send_command($i,$max,"Play");
+	my $mode = shift();
 
-		sleep($delay);
+	if ($mode eq "short") {
+		for (my $i = 0 ; $i < 10 ; $i++) {
+			send_command($i,10,"Play");
+			sleep(1);
+		}
+
+		while (1) {
+			send_command(0,0,"Stop");
+			sleep(1);
+		}
+	} elsif ($mode eq "long") {
+		my $max = 6000;
+		for (my $i = 1 ; $i < $max; $i++ ) {
+			send_command($i,$max,"Play");
+
+			sleep($delay);
+		}
 	}
 
 	exit(0);
