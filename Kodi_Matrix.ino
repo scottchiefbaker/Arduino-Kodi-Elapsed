@@ -57,16 +57,12 @@ void loop() {
 
 	if (!maximum) {
 		Serial.print("No input data\r\n");
-		clear_display();
-
 		delay(250);
-
-		return;
 	}
 
 	// If we don't have any new serial data in X seconds clear the display
 	unsigned long now = millis();
-	if (now - last_update > 5000) {
+	if (now - last_update > 4000) {
 		clear_display();
 
 		return;
@@ -244,8 +240,10 @@ int process_serial_commands() {
 				} else {
 					if (parts[2] == "Play") {
 						play_mode = 1;
+						last_update = millis();
 					} else if (parts[2] == "Pause") {
 						play_mode = 2;
+						last_update = millis();
 					} else if (parts[2] == "Stop") {
 						play_mode = 3;
 					} else {
@@ -256,8 +254,6 @@ int process_serial_commands() {
 						elapsed = parts[0].toInt();
 						maximum = parts[1].toInt();
 					}
-
-					last_update = millis();
 
 					if (debug) {
 						s.printf("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
