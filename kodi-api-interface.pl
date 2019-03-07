@@ -195,7 +195,7 @@ sub test_mode {
 	my $mode = shift();
 
 	if ($mode eq "short") {
-		for (my $i = 0 ; $i < 10 ; $i++) {
+		for (my $i = 0 ; $i <= 10 ; $i++) {
 			send_command($i,10,"Play");
 			sleep(1);
 		}
