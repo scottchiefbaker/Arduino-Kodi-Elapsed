@@ -208,9 +208,14 @@ sub test_mode {
 		}
 	} elsif ($mode eq "long") {
 		my $max = 6000;
-		for (my $i = 1 ; $i < $max; $i++ ) {
+		for (my $i = 1 ; $i <= $max; $i++ ) {
 			send_command($i,$max,"Play");
 
+			sleep($delay);
+		}
+
+		for (my $i = 1 ; $i <= 140; $i++ ) {
+			send_command(0,0,"Stop");
 			sleep($delay);
 		}
 	}
