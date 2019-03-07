@@ -1,8 +1,19 @@
+###############################################################################
+# Copy this file to /etc/systemd/system/kodi-api.service
+#
+# systemctl enable kodi-api
+# systemctl start kodi-api
+#
+# Borrowed from: https://unix.stackexchange.com/questions/41252/how-to-start-a-perl-webserver-with-systemd
+###############################################################################
+
 [Unit]
 After=network.service
 
 [Service]
 ExecStart=/home/osmc/Arduino-Kodi-Elapsed/kodi-api-interface.pl
+User=osmc
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
