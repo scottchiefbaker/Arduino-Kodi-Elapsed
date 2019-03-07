@@ -1,8 +1,8 @@
 ###############################################################################
-# Copy this file to /etc/systemd/system/kodi-api.service
+# Copy this file to /etc/systemd/system/kodi-led.service
 #
-# systemctl enable kodi-api
-# systemctl start kodi-api
+# systemctl enable kodi-led
+# systemctl start kodi-led
 #
 # Borrowed from: https://unix.stackexchange.com/questions/41252/how-to-start-a-perl-webserver-with-systemd
 ###############################################################################
@@ -11,7 +11,7 @@
 After=network.service
 
 [Service]
-ExecStart=/home/osmc/Arduino-Kodi-Elapsed/kodi-api-interface.pl
+ExecStart=/home/osmc/Arduino-Kodi-Elapsed/kodi-led-service.pl
 User=osmc
 Restart=on-failure
 
