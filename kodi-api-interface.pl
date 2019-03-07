@@ -54,9 +54,7 @@ while (1) {
 	}
 
 	# Send the command to the serial port
-	if (!$debug) {
-		send_command($x->{elapsed},$x->{total},$x->{playmode});
-	}
+	send_command($x->{elapsed}, $x->{total}, $x->{playmode});
 
 	sleep(0.45);
 }
@@ -238,7 +236,9 @@ sub send_command {
 		print $cmd;
 	}
 
-	$fh->print($cmd);
+	if (!$debug) {
+		$fh->print($cmd);
+	}
 }
 
 # Figure out which player Kodi is using (0 = Audio, 1 = Video, 2 = Picture)
