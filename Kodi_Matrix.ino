@@ -1,36 +1,8 @@
+// Use a TM1637 module... if this is not defined we use a 8 x 32 matrix instead
 #define TM1637
 
-// Use a TM1637 module... if this is not defined we
-// use a 8 x 32 matrix instead
-#ifdef TM1637
-
-#include <TM1637Display.h>
-#define CLK 3
-#define DIO 2
-
-TM1637Display display(CLK, DIO);
-#else
-
-#include <LEDMatrixDriver.hpp>
-
-// Define the ChipSelect pin for the led matrix (Dont use the SS or MISO pin of your Arduino!)
-//* DIN => Pin #13
-//* CLK => Pin #11
-//* CS  => Pin #9
-const uint8_t LEDMATRIX_CS_PIN = 5;
-
-// Define LED Matrix dimensions: 32x8, 16x8, or 8x8
-const int LEDMATRIX_WIDTH    = 32;
-const int LEDMATRIX_HEIGHT   = 8;
-const int LEDMATRIX_SEGMENTS = LEDMATRIX_WIDTH / LEDMATRIX_HEIGHT;
-
-// If the matrixes are diplaying in the wrong direction (right to left) change
-// this to true
-bool display_reverse = true;
-// The LEDMatrixDriver class instance
-LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, display_reverse);
-
-#endif
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
 
 #include <EEPROM.h>
 #include <PrintEx.h>
@@ -45,23 +17,8 @@ int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 int invert    = 0; // 1 = Show remaining time, 0 = Show elapsed time
 int debug     = 0; // Enable debug output on the serial port
 
-// Font designed at: https://gurgleapps.com/tools/matrix
-byte sprites[15][8] = {
-	{ 0x20,0x50,0x50,0x50,0x20,0x00,0x00,0x00 }, // 0
-	{ 0x20,0x60,0x20,0x20,0x70,0x00,0x00,0x00 }, // 1
-	{ 0x60,0x10,0x20,0x40,0x70,0x00,0x00,0x00 }, // 2
-	{ 0x60,0x10,0x60,0x10,0x60,0x00,0x00,0x00 }, // 3
-	{ 0x50,0x50,0x70,0x10,0x10,0x00,0x00,0x00 }, // 4
-	{ 0x70,0x40,0x60,0x10,0x60,0x00,0x00,0x00 }, // 5
-	{ 0x20,0x40,0x60,0x50,0x20,0x00,0x00,0x00 }, // 6
-	{ 0x70,0x10,0x20,0x20,0x20,0x00,0x00,0x00 }, // 7
-	{ 0x20,0x50,0x20,0x50,0x20,0x00,0x00,0x00 }, // 8
-	{ 0x20,0x50,0x30,0x10,0x20,0x00,0x00,0x00 }, // 9
-	{ 0x00,0x40,0x00,0x40,0x00,0x00,0x00,0x00 }, // :
-	{ 0x40,0x60,0x70,0x60,0x40,0x00,0x00,0x00 }, // Play >
-	{ 0x50,0x50,0x50,0x50,0x50,0x00,0x00,0x00 }, // Pause ||
-	{ 0x00,0x70,0x70,0x70,0x00,0x00,0x00,0x00 }, // Stop
-};
+#include "hw/tm1637.cpp"
+#include "hw/matrix.cpp"
 
 void loop() {
 	delay(10);
@@ -84,17 +41,7 @@ void loop() {
 		return;
 	}
 
-#ifndef TM1637
-	lmd.clear();
-#endif
-
 	draw_elapsed();
-	draw_percent_bar();
-
-#ifndef TM1637
-	// Toggle display of the new framebuffer
-	lmd.display();
-#endif
 }
 
 void draw_elapsed() {
@@ -103,103 +50,7 @@ void draw_elapsed() {
 		time = maximum - elapsed;
 	}
 
-#ifdef TM1637
-	show_time_tm1637(elapsed);
-
-	return;
-#endif
-
-	int hours   = time / 3600;
-	int minutes = time / 60;
-	int seconds = time % 60;
-
-	if (hours) {
-		minutes = minutes - (hours * 60);
-	}
-
-	int dig1 = hours;
-	int dig2 = minutes / 10;
-	int dig3 = minutes % 10;
-	int dig4 = seconds / 10;
-	int dig5 = seconds % 10;
-
-	//s.printf("Elapsed: %i Total: %i\r\n", time, maximum);
-	//s.printf("Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
-
-	// Play
-	if (play_mode == 1) {
-		drawSprite( sprites[11], 0, 0, 8, 8 );
-	// Pause
-	} else if (play_mode == 2) {
-		drawSprite( sprites[12], 0, 0, 8, 8 );
-	// Stop
-	} else if (play_mode == 3) {
-		drawSprite( sprites[13], 0, 0, 8, 8 );
-	}
-
-	// Number of pixels to start the numbers (from the left)
-	// This leaves room for the Play/Pause symbol
-
-	if (time < 3600) {
-		int offset = 12;
-
-		// Don't draw the first leading zero
-		if (dig2 != 0) {
-			drawSprite( sprites[dig2], offset + 1,  0, 8, 8 ); // X_:__
-		}
-
-		drawSprite( sprites[dig3], offset + 5,  0, 8, 8 ); // _X:__
-		drawSprite( sprites[10],   offset + 9,  0, 8, 8 ); // __:__ (the colon)
-		drawSprite( sprites[dig4], offset + 11, 0, 8, 8 ); // __:X_
-		drawSprite( sprites[dig5], offset + 15, 0, 8, 8 ); // __:_X
-	} else {
-		int offset = 6;
-
-		drawSprite( sprites[dig1], offset + 1,  0, 8, 8 ); // X:__:__
-		drawSprite( sprites[10],   offset + 5,  0, 8, 8 ); // _:__:__ (the first colon)
-		drawSprite( sprites[dig2], offset + 7,  0, 8, 8 ); // _:X_:__
-		drawSprite( sprites[dig3], offset + 11, 0, 8, 8 ); // _:_X:__
-		drawSprite( sprites[10],   offset + 15, 0, 8, 8 ); // _:__:__ (the second colon)
-		drawSprite( sprites[dig4], offset + 17, 0, 8, 8 ); // _:__:X_
-		drawSprite( sprites[dig5], offset + 21, 0, 8, 8 ); // _:__:_X
-	}
-}
-
-void draw_percent_bar() {
-#ifdef TM1637
-	// If it's the TM1637 we don't do anything for this
-	return;
-#else
-
-	float percent = ((float)elapsed / (float)maximum) * 100;
-
-	float dot_width = (1.0 / (float)(LEDMATRIX_WIDTH * 2 - 1)) * 100;
-	//s.printf("DotWidth: %0.3f\r\n", dot_width);
-
-	for (int i = 0 ; i < 32 ; i++) {
-		float bottom_dot_percent = ((float)(i * 2)     * dot_width);
-		float top_dot_percent    = ((float)(i * 2 + 1) * dot_width);
-
-		//s.printf("%02d = %0.3f/%0.3f\r\n", i, top_dot_percent, bottom_dot_percent);
-
-		if (bottom_dot_percent <= percent) {
-			lmd.setPixel(i,7,true);
-		} else {
-			lmd.setPixel(i,7,false);
-		}
-
-		if (top_dot_percent <= percent) {
-			lmd.setPixel(i,6,true);
-		} else {
-			lmd.setPixel(i,6,false);
-		}
-	}
-
-	// Add 0%, 50%, 100% indicators so you can see it at a distance
-	//lmd.setPixel(0,7,true);
-	//lmd.setPixel((LEDMATRIX_WIDTH / 2),7,true);
-	//lmd.setPixel((LEDMATRIX_WIDTH -1),7,true);
-#endif
+	show_time(time, play_mode);
 }
 
 // Buffer to store incoming serial commands
@@ -300,76 +151,6 @@ int process_serial_commands() {
     return 0;
 }
 
-/**
- * This draws a sprite to the given position using the width and height supplied (usually 8x8)
- */
-void drawSprite( byte* sprite, int x, int y, int width, int height ) {
-#ifndef TM1637
-	// The mask is used to get the column bit from the sprite row
-	byte mask = B10000000;
-
-	for( int iy = 0; iy < height; iy++ ) {
-		for( int ix = 0; ix < width; ix++ ) {
-			lmd.setPixel(x + ix, y + iy, (bool)(sprite[iy] & mask ));
-
-			// shift the mask by one pixel to the right
-			mask = mask >> 1;
-		}
-
-		// reset column mask
-		mask = B10000000;
-	}
-#endif
-}
-
-void init_matrix() {
-#ifndef TM1637
-	clear_display();
-
-	int pixel_delay = 30;
-
-	// Horizontal lines
-	for (int i = 0; i < 32; i++) {
-		lmd.setPixel(i,7,true);
-		lmd.setPixel(31 - i,0,true);
-
-		lmd.display();
-		delay(pixel_delay);
-	}
-
-	// Vertical lines
-	for (int i = 0; i < 8; i++) {
-		lmd.setPixel(0,i,true);
-		lmd.setPixel(31,8 - i,true);
-
-		lmd.display();
-		delay(pixel_delay);
-	}
-
-	pixel_delay = 10;
-
-	for (int x = 1; x < LEDMATRIX_WIDTH - 1; x++) {
-		for (int y = 1; y < 7 ; y++) {
-			int val = ((x + y) % 2) == 0;
-			lmd.setPixel(x,y,val);
-		}
-
-		lmd.display();
-
-		delay(pixel_delay);
-	}
-#endif
-}
-
-void clear_display() {
-#ifdef TM1637
-	display.clear();
-#else
-	lmd.clear();
-	lmd.display();
-#endif
-}
-
 int process_cmd(String cmd, String value) {
 	//s.printf("Command: %s => %s", cmd.c_str(), value.c_str());
 	int ret = 0;
@@ -405,6 +186,8 @@ int set_invert(int val) {
 #if defined(ESP8266) || defined(ESP32)
 	EEPROM.commit();
 #endif
+
+	clear_display();
 }
 
 int get_invert() {
@@ -432,24 +215,11 @@ int fetch_intensity() {
 	return ret;
 }
 
-void set_brightness(int num) {
-#ifdef TM1637
-	display.setBrightness(num);
-#else
-	lmd.setIntensity(num);
-#endif
-}
-
 void setup() {
 	Serial.begin(57600);
 
 #if defined(ESP8266) || defined(ESP32)
 	EEPROM.begin(64);
-#endif
-
-#ifndef TM1637
-	// init the display
-	lmd.setEnabled(true);
 #endif
 
 	set_brightness(fetch_intensity()); // 0 = low, 10 = high
@@ -461,60 +231,3 @@ void setup() {
 
 	clear_display();
 }
-
-#ifdef TM1637
-int show_time_tm1637(int seconds) {
-	int orig = seconds;
-	int d1, d2, d3, d4, hours, minutes;
-
-	if (orig == 0) {
-		clear_display();
-
-		return 0;
-	}
-
-	// Less than one hour
-	if (orig < 3599) {
-		hours    = 0;
-		minutes  = seconds / 60;
-		seconds -= (minutes * 60);
-
-		d1 = minutes / 10;
-		d2 = minutes % 10;
-		d3 = seconds / 10;
-		d4 = seconds % 10;
-	} else {
-		hours    = seconds / 3600;
-		seconds -= (hours * 3600);
-
-		minutes = seconds / 60;
-		seconds -= (minutes * 60);
-
-		d1 = hours   / 10;
-		d2 = hours   % 10;
-		d3 = minutes / 10;
-		d4 = minutes % 10;
-	}
-
-	//char msg[100] = "";
-	//snprintf(msg, 100, "Displaying: %d hours %d minutes %d seconds (%d%d:%d%d)\n", hours, minutes, seconds, d1, d2, d3, d4);
-	//Serial.print(msg);
-
-	// Convert the digits to a decimal number we can display
-	int display_num = (d1 * 1000) + (d2 * 100) + (d3 * 10) + d4;
-
-	// Number of digits to display
-	uint8_t digit_count;
-	uint8_t digit_pos;
-	if (d1) {
-		digit_count = 4;
-		digit_pos   = 0;
-	} else {
-		digit_count = 3;
-		digit_pos   = 1;
-	}
-
-	// https://github.com/avishorp/TM1637/blob/master/TM1637Display.h#L89
-	display.showNumberDecEx(display_num, 0b11100000, true, digit_count, digit_pos);
-}
-#endif
