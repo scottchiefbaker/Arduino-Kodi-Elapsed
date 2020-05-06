@@ -340,7 +340,7 @@ int process_cmd(String cmd, String value) {
 
 	if (cmd == "!intensity") {
 		int num = value.toInt();
-		set_intensity(num);
+		save_intensity(num);
 
 		ret = 1;
 	} else if (cmd == "!invert") {
@@ -377,8 +377,8 @@ int get_invert() {
 	return ret;
 }
 
-int set_intensity(int val) {
-	lmd.setIntensity(val);
+int save_intensity(int val) {
+	set_brightness(val);
 
 	EEPROM.write(17,val);
 #if defined(ESP8266) || defined(ESP32)
@@ -386,7 +386,7 @@ int set_intensity(int val) {
 #endif
 }
 
-int get_intensity() {
+int fetch_intensity() {
 	int ret = EEPROM.read(17);
 
 	if (ret > 8) {
@@ -394,6 +394,14 @@ int get_intensity() {
 	}
 
 	return ret;
+}
+
+void set_brightness(int num) {
+#ifdef TM1637
+	display.setBrightness(num);
+#else
+	lmd.setIntensity(num);
+#endif
 }
 
 void setup() {
@@ -405,7 +413,7 @@ void setup() {
 
 	// init the display
 	lmd.setEnabled(true);
-	lmd.setIntensity(get_intensity()); // 0 = low, 10 = high
+	set_brightness(fetch_intensity()); // 0 = low, 10 = high
 	invert = get_invert();
 
 	// Show the splash screen so you know it's on
