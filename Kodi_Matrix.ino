@@ -197,7 +197,7 @@ int process_serial_commands() {
                     ndx = numChars - 1;
                 }
 
-				//s.printf(buf,"Adding '%c' ... string is now %d chars long\r\n", rc, ndx);
+				//s.printf("Adding '%c' ... string is now %d chars long\r\n", rc, ndx);
             } else {
                 receivedChars[ndx] = '\0'; // terminate the string
 				String input = receivedChars;
