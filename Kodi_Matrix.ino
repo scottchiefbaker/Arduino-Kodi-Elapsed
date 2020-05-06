@@ -1,11 +1,17 @@
+#define TM1637
+
+// Use a TM1637 module... if this is not defined we
+// use a 8 x 32 matrix instead
+#ifdef TM1637
+
+#include <TM1637Display.h>
+#define CLK 3
+#define DIO 2
+
+TM1637Display display(CLK, DIO);
+#else
+
 #include <LEDMatrixDriver.hpp>
-#include <EEPROM.h>
-
-#include <PrintEx.h>
-PrintEx s = Serial;
-
-// This sketch draw marquee text on your LED matrix using the hardware SPI driver Library by Bartosz Bielawski.
-// Example written 16.06.2017 by Marko Oette, www.oette.info
 
 // Define the ChipSelect pin for the led matrix (Dont use the SS or MISO pin of your Arduino!)
 //* DIN => Pin #13
@@ -23,6 +29,12 @@ const int LEDMATRIX_SEGMENTS = LEDMATRIX_WIDTH / LEDMATRIX_HEIGHT;
 bool display_reverse = true;
 // The LEDMatrixDriver class instance
 LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, display_reverse);
+
+#endif
+
+#include <EEPROM.h>
+#include <PrintEx.h>
+PrintEx s = Serial;
 
 // Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
@@ -72,13 +84,17 @@ void loop() {
 		return;
 	}
 
+#ifndef TM1637
 	lmd.clear();
+#endif
 
 	draw_elapsed();
 	draw_percent_bar();
 
+#ifndef TM1637
 	// Toggle display of the new framebuffer
 	lmd.display();
+#endif
 }
 
 void draw_elapsed() {
@@ -86,6 +102,12 @@ void draw_elapsed() {
 	if (invert) {
 		time = maximum - elapsed;
 	}
+
+#ifdef TM1637
+	show_time_tm1637(elapsed);
+
+	return;
+#endif
 
 	int hours   = time / 3600;
 	int minutes = time / 60;
@@ -144,6 +166,11 @@ void draw_elapsed() {
 }
 
 void draw_percent_bar() {
+#ifdef TM1637
+	// If it's the TM1637 we don't do anything for this
+	return;
+#else
+
 	float percent = ((float)elapsed / (float)maximum) * 100;
 
 	float dot_width = (1.0 / (float)(LEDMATRIX_WIDTH * 2 - 1)) * 100;
@@ -172,6 +199,7 @@ void draw_percent_bar() {
 	//lmd.setPixel(0,7,true);
 	//lmd.setPixel((LEDMATRIX_WIDTH / 2),7,true);
 	//lmd.setPixel((LEDMATRIX_WIDTH -1),7,true);
+#endif
 }
 
 // Buffer to store incoming serial commands
@@ -276,6 +304,7 @@ int process_serial_commands() {
  * This draws a sprite to the given position using the width and height supplied (usually 8x8)
  */
 void drawSprite( byte* sprite, int x, int y, int width, int height ) {
+#ifndef TM1637
 	// The mask is used to get the column bit from the sprite row
 	byte mask = B10000000;
 
@@ -290,9 +319,11 @@ void drawSprite( byte* sprite, int x, int y, int width, int height ) {
 		// reset column mask
 		mask = B10000000;
 	}
+#endif
 }
 
 void init_matrix() {
+#ifndef TM1637
 	clear_display();
 
 	int pixel_delay = 30;
@@ -327,11 +358,16 @@ void init_matrix() {
 
 		delay(pixel_delay);
 	}
+#endif
 }
 
 void clear_display() {
+#ifdef TM1637
+	display.clear();
+#else
 	lmd.clear();
 	lmd.display();
+#endif
 }
 
 int process_cmd(String cmd, String value) {
@@ -411,8 +447,11 @@ void setup() {
 	EEPROM.begin(64);
 #endif
 
+#ifndef TM1637
 	// init the display
 	lmd.setEnabled(true);
+#endif
+
 	set_brightness(fetch_intensity()); // 0 = low, 10 = high
 	invert = get_invert();
 
