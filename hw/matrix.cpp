@@ -96,7 +96,7 @@ void draw_percent_bar() {
 	//lmd.setPixel((LEDMATRIX_WIDTH -1),7,true);
 }
 
-int show_time(int time, int play_mode) {
+int show_elapsed(int time, int play_mode) {
 	int hours   = time / 3600;
 	int minutes = time / 60;
 	int seconds = time % 60;

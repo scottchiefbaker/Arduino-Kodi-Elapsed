@@ -14,26 +14,59 @@ void clear_display() {
 	display.clear();
 }
 
-int show_time(int seconds, int play_mode) {
-	int orig = seconds;
-	int d1, d2, d3, d4, hours, minutes;
+void init_matrix() {
+}
 
-	if (orig == 0) {
+void set_brightness(int num) {
+	display.setBrightness(num);
+}
+
+void show_clock(uint8_t hours, uint8_t minutes) {
+	uint8_t d1 = hours   / 10; // Tens digit of hours
+	uint8_t d2 = hours   % 10; // Ones digit of hours
+	uint8_t d3 = minutes / 10; // Tens digit of minutes
+	uint8_t d4 = minutes % 10; // Ones digit of minutes
+
+	/*
+	char msg[100] = "";
+	snprintf(msg, 100, "Displaying: %d hours %d minutes (%d%d:%d%d)\n", hours, minutes, d1, d2, d3, d4);
+	Serial.print(msg);
+	*/
+
+	uint8_t digits[4];
+	digits[0] = display.encodeDigit(d1);
+	digits[1] = display.encodeDigit(d2);
+	digits[2] = display.encodeDigit(d3);
+	digits[3] = display.encodeDigit(d4);
+
+	// Turn on the colon
+	digits[1] |= 128;
+
+	// No leading zero on times like 1:34
+	if (!d1) {
+		digits[0] = 0; // Off
+	}
+
+	display.setSegments(digits, 4, 0);
+}
+
+int show_elapsed(unsigned int seconds, uint8_t play_mode) {
+	uint8_t d1, d2, d3, d4;
+	uint8_t hours, minutes;
+
+	if (seconds == 0) {
 		clear_display();
 
 		return 0;
 	}
 
 	// Less than one hour
-	if (orig < 3599) {
+	if (seconds <= 3599) {
 		hours    = 0;
 		minutes  = seconds / 60;
 		seconds -= (minutes * 60);
 
-		d1 = minutes / 10;
-		d2 = minutes % 10;
-		d3 = seconds / 10;
-		d4 = seconds % 10;
+		show_clock(minutes, seconds);
 	} else {
 		hours    = seconds / 3600;
 		seconds -= (hours * 3600);
@@ -41,42 +74,12 @@ int show_time(int seconds, int play_mode) {
 		minutes = seconds / 60;
 		seconds -= (minutes * 60);
 
-		d1 = hours   / 10;
-		d2 = hours   % 10;
-		d3 = minutes / 10;
-		d4 = minutes % 10;
+		show_clock(hours, minutes);
 	}
 
 	//char msg[100] = "";
 	//snprintf(msg, 100, "Displaying: %d hours %d minutes %d seconds (%d%d:%d%d)\n", hours, minutes, seconds, d1, d2, d3, d4);
 	//Serial.print(msg);
-
-	// Convert the digits to a decimal number we can display
-	int display_num = (d1 * 1000) + (d2 * 100) + (d3 * 10) + d4;
-
-	// Number of digits to display
-	uint8_t digit_count;
-	uint8_t digit_pos;
-	if (d1) {
-		digit_count = 4;
-		digit_pos   = 0;
-	} else {
-		digit_count = 3;
-		digit_pos   = 1;
-	}
-
-	// https://github.com/avishorp/TM1637/blob/master/TM1637Display.h#L89
-	display.showNumberDecEx(display_num, 0b11100000, true, digit_count, digit_pos);
-}
-
-void draw_percent_bar() {
-}
-
-void init_matrix() {
-}
-
-void set_brightness(int num) {
-	display.setBrightness(num);
 }
 
 #endif

@@ -50,7 +50,7 @@ void draw_elapsed() {
 		time = maximum - elapsed;
 	}
 
-	show_time(time, play_mode);
+	show_elapsed(time, play_mode);
 }
 
 // Buffer to store incoming serial commands
