@@ -68,14 +68,14 @@ def loop():
         # Build the string to send to the Arduino via serial
         # Format: ElapsedSeconds:TotalSeconds:PlayMode
         # Example: 1042:2820:Play
-        line = str(cur_time) + ":" + str(total) + ":" + speed_str
+        line = "<" + str(cur_time) + ":" + str(total) + ":" + speed_str + ">"
         print(line)
 
         # Write the line to the serial port
         ser.write(line + "\n")
 
         # Sleep X seconds
-        time.sleep(0.5)
+        time.sleep(0.45)
 
 def run_test():
     i     = 0
