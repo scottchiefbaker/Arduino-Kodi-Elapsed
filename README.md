@@ -18,10 +18,10 @@ Use an Arduino and an LED Matrix to show the elasped time on a Kodi installation
   * CLK => Pin #11
   * CS  => Pin #9
 * Run Perl script to read Kodi API and determine time elapsed
-  * `systemd` service script provided to automate startup 
+  * `systemd` service script provided to automate startup
 * Perl script feeds data via serial to Arduino to display on LED Matrix
 
 ## Testing
 
-* `echo "1236:2860:Play" > /dev/ttyUSB0`
+* `echo "<1236:2860:Play>" > /dev/ttyUSB0`
 * run `kodi-led-service.pl --test`
