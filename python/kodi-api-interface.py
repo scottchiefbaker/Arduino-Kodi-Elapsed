@@ -39,7 +39,7 @@ def loop():
 
         if error_code == -32100:
             new_player_id = get_active_player();
-            print "Error playerid " + player_id + " is not valid anymore. Switching to " + new_player_id
+            print("Error playerid " + player_id + " is not valid anymore. Switching to " + new_player_id)
             player_id = new_player_id
 
             time.sleep(2)
