@@ -58,35 +58,35 @@ const byte numChars = 30;
 char receivedChars[numChars]; // an array to store the received data
 
 int process_serial_commands() {
-    static boolean recvInProgress = false;
-    static byte ndx               = 0;
-    char startMarker              = '<';
-    char endMarker                = '>';
-    char rc;
+	static boolean recvInProgress = false;
+	static byte ndx               = 0;
+	char startMarker              = '<';
+	char endMarker                = '>';
+	char rc;
 
-    while (Serial.available() > 0) {
-        rc = Serial.read();
+	while (Serial.available() > 0) {
+		rc = Serial.read();
 		//Serial.print(rc);
 
-        if (recvInProgress == true) {
-            if (rc != endMarker) {
-                receivedChars[ndx] = rc;
-                ndx++;
-                if (ndx >= numChars) {
-                    ndx = numChars - 1;
-                }
+		if (recvInProgress == true) {
+			if (rc != endMarker) {
+				receivedChars[ndx] = rc;
+				ndx++;
+				if (ndx >= numChars) {
+					ndx = numChars - 1;
+				}
 
 				//s.printf("Adding '%c' ... string is now %d chars long\r\n", rc, ndx);
-            } else {
-                receivedChars[ndx] = '\0'; // terminate the string
+			} else {
+				receivedChars[ndx] = '\0'; // terminate the string
 				String input = receivedChars;
 
 				//s.printf(buf,"Input: '%s'\r\n", receivedChars);
 
 				// Reset all the variables so we start fresh
-                memset(receivedChars, 0, numChars);
-                recvInProgress = false;
-                ndx            = 0;
+				memset(receivedChars, 0, numChars);
+				recvInProgress = false;
+				ndx            = 0;
 
 				int first  = input.indexOf(":");
 				int second = input.indexOf(":", first + 1);
@@ -148,7 +148,7 @@ int process_serial_commands() {
 		}
 	}
 
-    return 0;
+	return 0;
 }
 
 int process_cmd(String cmd, String value) {
