@@ -5,7 +5,7 @@ import time
 import serial
 import sys
 
-kodi_ip              = "192.168.5.21"
+kodi_ip              = "127.0.0.1"
 player_id            = "1" # Video = 1, Audio = 0
 arduino_serial_port  = "/dev/ttyUSB0"
 arduino_serial_speed = 57600
@@ -106,8 +106,11 @@ def get_active_player():
     # String to hash
     x = json.loads(resp)
 
-    #active_id = x.get("result", {}).get(0,{}).get("playerid",1)
-    active_id = x["result"][0]["playerid"]
+    try:
+        active_id = x["result"][0]["playerid"]
+    except:
+        active_id = -1
+
     active_id = str(active_id)
 
     print("Active playerid: " + active_id)
