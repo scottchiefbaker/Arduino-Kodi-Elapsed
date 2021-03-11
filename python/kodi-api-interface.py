@@ -66,8 +66,8 @@ def loop():
             speed_str = "Stop"
 
         # Build the string to send to the Arduino via serial
-        # Format: ElapsedSeconds:TotalSeconds:PlayMode
-        # Example: 1042:2820:Play
+        # Format: <ElapsedSeconds:TotalSeconds:PlayMode>
+        # Example: <1042:2820:Play>
         line = "<" + str(cur_time) + ":" + str(total) + ":" + speed_str + ">"
         print(line)
 
