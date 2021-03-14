@@ -45,14 +45,13 @@ def loop():
             time.sleep(2)
             continue
 
-        #print(x);
+        timez = x.get('result', {}).get('time', {})
+        if (len(timez) == 0):
+            continue
 
-        hours     = x["result"]["time"]["hours"];
-        hours_str = str(hours).zfill(2)
-        mins      = x["result"]["time"]["minutes"];
-        mins_str  = str(mins).zfill(2)
-        secs      = x["result"]["time"]["seconds"]
-        secs_str  = str(secs).zfill(2)
+        hours = timez.get('hours', 0)
+        mins  = timez.get('minutes', 0)
+        secs  = timez.get('seconds', 0)
 
         cur_time = (hours * 3600) + (mins * 60) + secs
         total    = (x["result"]["totaltime"]["hours"] * 3600) + (x["result"]["totaltime"]["minutes"] * 60) + x["result"]["totaltime"]["seconds"]
