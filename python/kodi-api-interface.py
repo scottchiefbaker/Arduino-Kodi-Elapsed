@@ -81,7 +81,7 @@ def run_test():
     total = 6000;
 
     while i < total:
-        line = str(i) + ":" + str(total) + ":Play"
+        line = "<" + str(i) + ":" + str(total) + ":Play" + ">"
 
         # Write the line to the serial port
         ser.write(line + "\n")
