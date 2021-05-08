@@ -35,11 +35,11 @@ def loop():
         # String to hash
         x = json.loads(resp)
 
-        error_code = x.get("error",{}).get("code", 0)
+        error_code = x.get("error", {}).get("code", 0)
 
         if error_code != 0:
             new_player_id = get_active_player();
-            print "Error playerid " + player_id + " is not valid anymore. Switching to " + new_player_id
+            print("Error playerid " + player_id + " is not valid anymore. Switching to " + new_player_id)
             player_id = new_player_id
 
             time.sleep(2)
@@ -65,7 +65,7 @@ def loop():
             speed_str = "Stop"
 
         # Build the string to send to the Arduino via serial
-        # Format: <ElapsedSeconds:TotalSeconds:PlayMode>
+        # Format : <ElapsedSeconds:TotalSeconds:PlayMode>
         # Example: <1042:2820:Play>
         line = "<" + str(cur_time) + ":" + str(total) + ":" + speed_str + ">"
         print(line)
