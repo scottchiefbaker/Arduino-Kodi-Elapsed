@@ -205,7 +205,7 @@ sub test_mode {
 			sleep(1);
 		}
 	} elsif ($mode eq "long") {
-		my $max = 6000;
+		my $max = 6100;
 		for (my $i = 1 ; $i <= $max; $i++ ) {
 			send_command($i,$max,"Play");
 

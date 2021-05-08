@@ -60,13 +60,15 @@ int show_elapsed(unsigned int seconds, uint8_t play_mode) {
 		return 0;
 	}
 
-	// Less than one hour
-	if (seconds <= 3599) {
+	// This is minutes mode
+	// Kick in at 99:59
+	if (seconds <= 99 * 60 + 59) {
 		hours    = 0;
 		minutes  = seconds / 60;
 		seconds -= (minutes * 60);
 
 		show_clock(minutes, seconds);
+	// This is seconds mode
 	} else {
 		hours    = seconds / 3600;
 		seconds -= (hours * 3600);
