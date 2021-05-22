@@ -1,5 +1,7 @@
 // Use a TM1637 module... if this is not defined we use a 8 x 32 matrix instead
-#define TM1637
+//
+// Uncomment this to build the TM1637 seven segment version
+// #define TM1637
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
