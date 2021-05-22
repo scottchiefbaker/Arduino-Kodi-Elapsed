@@ -19,6 +19,11 @@ int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 int invert    = 0; // 1 = Show remaining time, 0 = Show elapsed time
 int debug     = 0; // Enable debug output on the serial port
 
+// Store the previous values
+int maximum_p   = 0;
+int elapsed_p   = 0;
+int play_mode_p = 0;
+
 #include "hw/tm1637.cpp"
 #include "hw/matrix.cpp"
 
@@ -36,14 +41,31 @@ void loop() {
 	if (now - last_update > 4000) {
 		clear_display();
 
+		// Reset the numbers since we're starting from scratch
+		maximum_p = elapsed_p = play_mode_p = 0;
+
 		return;
 	}
 
+	// No data came in via serial
 	if (!ok) {
 		return;
 	}
 
+	bool is_new = (maximum != maximum_p || elapsed != elapsed_p || play_mode != play_mode_p);
+
+	// Don't draw anything unless the numbers have changed
+	if (!is_new) {
+		return;
+	}
+
+	// Show the numbers on the display
 	draw_elapsed();
+
+	// Store the current values to we can check it next loop
+	maximum_p   = maximum;
+	elapsed_p   = elapsed;
+	play_mode_p = play_mode;
 }
 
 void draw_elapsed() {
