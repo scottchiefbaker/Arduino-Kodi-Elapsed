@@ -5,7 +5,7 @@ import time
 import serial
 import sys
 
-kodi_ip              = "127.0.0.1"
+kodi_ip              = "192.168.5.21"
 player_id            = "1" # Video = 1, Audio = 0
 arduino_serial_port  = "/dev/ttyUSB0"
 arduino_serial_speed = 57600
@@ -24,6 +24,8 @@ def loop():
     global kodi_ip
 
     while 1:
+        start = time.time()
+
         # Where to connect for the Kodi API
         url = 'http://' + kodi_ip + '/jsonrpc?request={"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":' + player_id + ',"properties":["time","totaltime","percentage","speed"]},"id":"1"}'
 
@@ -73,8 +75,12 @@ def loop():
         # Write the line to the serial port
         ser.write(line + "\n")
 
+        end        = time.time()
+        total      = end - start
+        sleep_time = 0.4995 - total
+
         # Sleep X seconds
-        time.sleep(0.45)
+        time.sleep(sleep_time)
 
 def run_test():
     i     = 0
