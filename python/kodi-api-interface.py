@@ -5,7 +5,7 @@ import time
 import serial
 import sys
 
-kodi_ip              = "192.168.5.21"
+kodi_ip              = "127.0.0.1"
 player_id            = "1" # Video = 1, Audio = 0
 arduino_serial_port  = "/dev/ttyUSB0"
 arduino_serial_speed = 57600
