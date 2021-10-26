@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import urllib.request
+import urllib2
 import json
 import time
 import serial
@@ -24,13 +24,11 @@ def loop():
     global kodi_ip
 
     while 1:
-        start = time.time()
-
         # Where to connect for the Kodi API
         url = 'http://' + kodi_ip + '/jsonrpc?request={"jsonrpc":"2.0","method":"Player.GetProperties","params":{"playerid":' + player_id + ',"properties":["time","totaltime","percentage","speed"]},"id":"1"}'
 
         # This is raw bytes
-        resp = urllib.request.urlopen(url).read()
+        resp = urllib2.urlopen(url).read()
         # Convert bytes to a string
         resp = resp.decode("utf-8")
 
@@ -72,22 +70,11 @@ def loop():
         line = "<" + str(cur_time) + ":" + str(total) + ":" + speed_str + ">"
         print(line)
 
-        line = line + "\n"
-        line = line.encode('ascii')
-
         # Write the line to the serial port
-        ser.write(line)
-
-        end        = time.time()
-        total      = end - start
-        sleep_time = 0.4995 - total
-
-        end        = time.time()
-        total      = end - start
-        sleep_time = 0.4995 - total
+        ser.write(line + "\n")
 
         # Sleep X seconds
-        time.sleep(sleep_time)
+        time.sleep(0.45)
 
 def run_test():
     i     = 0
@@ -111,7 +98,7 @@ def get_active_player():
     url = 'http://' + kodi_ip + '/jsonrpc?request={"jsonrpc":"2.0","id":1,"method":"Player.GetActivePlayers"}'
 
     # This is raw bytes
-    resp = urllib.request.urlopen(url).read()
+    resp = urllib2.urlopen(url).read()
     # Convert bytes to a string
     resp = resp.decode("utf-8")
 
