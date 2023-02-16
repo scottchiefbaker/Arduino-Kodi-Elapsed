@@ -61,6 +61,8 @@ void loop() {
 	// If we don't have any new serial data in X seconds clear the display
 	unsigned long now = millis();
 	if (now - last_update > 4000) {
+		// We don't have any data so we reset all the time vars
+		elapsed = play_mode = maximum = 0;
 		clear_display();
 
 		// Reset the numbers since we're starting from scratch
