@@ -10,6 +10,27 @@
 #include <PrintEx.h>
 PrintEx s = Serial;
 
+// Define the ChipSelect pin for the led matrix (Dont use the SS or MISO pin of your Arduino!)
+//* DIN => Pin #13
+//* CLK => Pin #11
+//* CS  => Pin #9
+const uint8_t LEDMATRIX_CS_PIN = 5;
+
+// Define LED Matrix dimensions: 32x8, 16x8, or 8x8
+const int LEDMATRIX_WIDTH    = 32;
+const int LEDMATRIX_HEIGHT   = 8;
+const int LEDMATRIX_SEGMENTS = LEDMATRIX_WIDTH / LEDMATRIX_HEIGHT;
+
+// https://github.com/bartoszbielawski/LEDMatrixDriver/blob/master/src/LEDMatrixDriver.hpp#L44
+// If the matrixes are diplaying in the wrong direction (right to left) change this:
+// 1 = Invert segments
+// 2 = Flip x-axis
+// 4 = Flip y-axis
+const int LEDMATRIX_FLAGS = 2;
+
+// The LEDMatrixDriver class instance
+LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, LEDMATRIX_FLAGS);
+
 // Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
 
