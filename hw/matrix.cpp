@@ -13,11 +13,15 @@ const int LEDMATRIX_WIDTH    = 32;
 const int LEDMATRIX_HEIGHT   = 8;
 const int LEDMATRIX_SEGMENTS = LEDMATRIX_WIDTH / LEDMATRIX_HEIGHT;
 
-// If the matrixes are diplaying in the wrong direction (right to left) change
-// this to true
-bool display_reverse = false;
+// https://github.com/bartoszbielawski/LEDMatrixDriver/blob/master/src/LEDMatrixDriver.hpp#L44
+// If the matrixes are diplaying in the wrong direction (right to left) change this:
+// 1 = Invert segments
+// 2 = Flip x-axis
+// 4 = Flip y-axis
+const int LEDMATRIX_FLAGS = 2;
+
 // The LEDMatrixDriver class instance
-LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, display_reverse);
+LEDMatrixDriver lmd(LEDMATRIX_SEGMENTS, LEDMATRIX_CS_PIN, LEDMATRIX_FLAGS);
 
 // Font designed at: https://gurgleapps.com/tools/matrix
 byte sprites[15][8] = {
