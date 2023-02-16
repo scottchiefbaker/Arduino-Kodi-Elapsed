@@ -203,7 +203,7 @@ int process_cmd(String cmd, String value) {
 
 	if (cmd == "!intensity") {
 		int num = value.toInt();
-		save_intensity(num);
+		set_intensity(num);
 
 		ret = 1;
 	} else if (cmd == "!invert") {
@@ -221,7 +221,7 @@ int process_cmd(String cmd, String value) {
 	return ret;
 }
 
-int set_invert(int val) {
+void set_invert(int val) {
 	// -1 is a toggle (set it to the opposite)
 	if (val == -1) {
 		val = !invert;
@@ -242,8 +242,9 @@ int get_invert() {
 	return ret;
 }
 
-int save_intensity(int val) {
+void set_intensity(int val) {
 	set_brightness(val);
+	lmd.setIntensity(val);
 
 	EEPROM.write(17,val);
 #if defined(ESP8266) || defined(ESP32)
