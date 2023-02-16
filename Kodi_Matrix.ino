@@ -1,8 +1,3 @@
-// Use a TM1637 module... if this is not defined we use a 8 x 32 matrix instead
-//
-// Uncomment this to build the TM1637 seven segment version
-// #define TM1637
-
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 
@@ -24,8 +19,11 @@ int maximum_p   = 0;
 int elapsed_p   = 0;
 int play_mode_p = 0;
 
-#include "hw/tm1637.cpp"
-#include "hw/matrix.cpp"
+// Build the MAX7219 LED Matrix version
+#include "hw/max7219_matrix.cpp"
+
+// Build the TM1637 seven segment version
+//#include "hw/tm1637.cpp"
 
 void loop() {
 	delay(10);
@@ -224,7 +222,6 @@ int get_invert() {
 
 void set_intensity(int val) {
 	set_brightness(val);
-	lmd.setIntensity(val);
 
 	EEPROM.write(17,val);
 #if defined(ESP8266) || defined(ESP32)
