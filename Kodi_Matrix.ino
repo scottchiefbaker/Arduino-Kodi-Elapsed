@@ -6,6 +6,7 @@
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 
+#include <LEDMatrixDriver.hpp> // https://github.com/bartoszbielawski/LEDMatrixDriver v0.2.2
 #include <EEPROM.h>
 #include <PrintEx.h>
 PrintEx s = Serial;
