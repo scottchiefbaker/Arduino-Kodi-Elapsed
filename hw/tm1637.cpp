@@ -1,5 +1,3 @@
-#ifdef TM1637
-
 #include <TM1637Display.h>
 
 #define CLK 3
@@ -82,6 +80,6 @@ int show_elapsed(unsigned int seconds, uint8_t play_mode) {
 	//char msg[100] = "";
 	//snprintf(msg, 100, "Displaying: %d hours %d minutes %d seconds (%d%d:%d%d)\n", hours, minutes, seconds, d1, d2, d3, d4);
 	//Serial.print(msg);
-}
 
-#endif
+	return 1;
+}

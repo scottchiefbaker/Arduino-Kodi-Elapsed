@@ -1,5 +1,3 @@
-#ifndef TM1637
-
 #include <LEDMatrixDriver.hpp>
 
 // Define the ChipSelect pin for the led matrix (Dont use the SS or MISO pin of your Arduino!)
@@ -207,5 +205,3 @@ void init_matrix() {
 void set_brightness(int num) {
 	lmd.setIntensity(num);
 }
-
-#endif
