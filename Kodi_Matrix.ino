@@ -1,9 +1,15 @@
+#define DEBUG_DISABLED
+
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
 
 #include <EEPROM.h>
-#include <PrintEx.h>
-PrintEx s = Serial;
+#include "RemoteDebug.h"  //https://github.com/JoaoLopesF/RemoteDebug
+
+#ifndef DEBUG_DISABLED
+#include <WebOTA.h>
+RemoteDebug Debug;
+#endif
 
 // Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
@@ -12,7 +18,6 @@ int maximum   = 0; // Total number of seconds in the media
 int elapsed   = 0; // Elapsed seconds in the media
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 int invert    = 0; // 1 = Show remaining time, 0 = Show elapsed time
-int debug     = 0; // Enable debug output on the serial port
 
 // Store the previous values
 int maximum_p   = 0;
@@ -27,10 +32,17 @@ int play_mode_p = 0;
 
 void loop() {
 	delay(10);
+
+	#ifndef DEBUG_DISABLED
+	Debug.handle();
+	#endif
+
 	int ok = process_serial_commands();
 
 	if (!maximum) {
-		Serial.print("No input data\r\n");
+		Serial.println("Waiting for input data");
+		debugI("Waiting for input data");
+
 		delay(250);
 	}
 
@@ -56,6 +68,7 @@ void loop() {
 
 	// Don't draw anything unless the numbers have changed
 	if (!is_new) {
+		debugI("Data is not new... no draw");
 		return;
 	}
 
@@ -100,12 +113,12 @@ int process_serial_commands() {
 					ndx = numChars - 1;
 				}
 
-				//s.printf("Adding '%c' ... string is now %d chars long\r\n", rc, ndx);
+				//debugA("Adding '%c' ... string is now %d chars long", rc, ndx);
 			} else {
 				receivedChars[ndx] = '\0'; // terminate the string
 				String input = receivedChars;
 
-				//s.printf(buf,"Input: '%s'\r\n", receivedChars);
+				//debugA(buf,"Input: '%s'", receivedChars);
 
 				// Reset all the variables so we start fresh
 				memset(receivedChars, 0, numChars);
@@ -130,16 +143,12 @@ int process_serial_commands() {
 				parts[1] = input.substring(first + 1, second);
 				parts[2] = input.substring(second + 1);
 
-				if (debug) {
-					s.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
-				}
+				debugV("Words: %s / %s / %s", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
 
 				if (parts[0].startsWith("!")) {
 					int ok = process_cmd(parts[0], parts[1]);
 
-					if (debug) {
-						s.printf("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
-					}
+					debugV("Command: %s = %s", parts[0].c_str(), parts[1].c_str());
 				} else {
 					if (parts[2] == "Play") {
 						play_mode = 1;
@@ -158,9 +167,7 @@ int process_serial_commands() {
 						maximum = parts[1].toInt();
 					}
 
-					if (debug) {
-						s.printf("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
-					}
+					debugI("Serial: \"%s\" / %i / %i", parts[2].c_str(), elapsed, maximum);
 				}
 
 				return 1;
@@ -176,7 +183,7 @@ int process_serial_commands() {
 }
 
 int process_cmd(String cmd, String value) {
-	//s.printf("Command: %s => %s", cmd.c_str(), value.c_str());
+	//debugI("Command: %s => %s", cmd.c_str(), value.c_str());
 	int ret = 0;
 
 	if (cmd == "!intensity") {
@@ -187,11 +194,6 @@ int process_cmd(String cmd, String value) {
 	} else if (cmd == "!invert") {
 		int num = value.toInt();
 		set_invert(num);
-
-		ret = 1;
-	} else if (cmd == "!debug") {
-		int num = value.toInt();
-		debug   = num; // Enable/disable global debug
 
 		ret = 1;
 	}
@@ -241,6 +243,14 @@ int fetch_intensity() {
 
 void setup() {
 	Serial.begin(57600);
+
+	#ifndef DEBUG_DISABLED
+	init_wifi("DirectLink", "canbycampus", "KodiArduino");
+	Debug.begin("KodiArduino", Debug.INFO);
+	Debug.showColors(true);
+	Debug.showProfiler(true);
+	Debug.setResetCmdEnabled(true);
+	#endif
 
 #if defined(ESP8266) || defined(ESP32)
 	EEPROM.begin(64);

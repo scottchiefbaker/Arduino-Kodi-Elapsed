@@ -43,6 +43,8 @@ byte sprites[15][8] = {
 ////////////////////////////////////////////////////////
 
 void clear_display() {
+	debugI("Clearing display");
+
 	lmd.clear();
 	lmd.display();
 }
@@ -72,6 +74,7 @@ void draw_percent_bar() {
 
 	float dot_width = (1.0 / (float)(LEDMATRIX_WIDTH * 2 - 1)) * 100;
 	//s.printf("DotWidth: %0.3f\r\n", dot_width);
+	debugI("Drawing bar = %0.1f", percent);
 
 	for (int i = 0 ; i < 32 ; i++) {
 		float bottom_dot_percent = ((float)(i * 2)     * dot_width);
@@ -115,8 +118,8 @@ void show_elapsed(int time, int play_mode) {
 
 	lmd.clear();
 
-	//s.printf("Elapsed: %i Total: %i\r\n", time, maximum);
-	//s.printf("Hours: %i Mins: %i Seconds: %i\r\n", hours, minutes, seconds);
+	debugI("Elapsed: %i Total: %i", time, maximum);
+	debugV("Hours: %i Mins: %i Seconds: %i", hours, minutes, seconds);
 
 	// Play
 	if (play_mode == 1) {
