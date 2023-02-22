@@ -7,8 +7,7 @@
 ////////////////////////////////////////////////////////
 
 #include <EEPROM.h>
-#include <PrintEx.h>
-PrintEx s = Serial;
+#include <esp-rix.h>
 
 // Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
@@ -17,7 +16,6 @@ int maximum   = 0; // Total number of seconds in the media
 int elapsed   = 0; // Elapsed seconds in the media
 int play_mode = 0; // 1 = Play, 2 = Pause, 3 = Stop
 int invert    = 0; // 1 = Show remaining time, 0 = Show elapsed time
-int debug     = 0; // Enable debug output on the serial port
 
 // Store the previous values
 int maximum_p   = 0;
@@ -32,8 +30,10 @@ void loop() {
 	int ok = process_serial_commands();
 
 	if (!maximum) {
-		Serial.print("No input data\r\n");
-		delay(250);
+		Serial.print("Waiting for input...\r\n");
+		rix_5("Waiting for input...");
+
+		delay(240);
 	}
 
 	// If we don't have any new serial data in X seconds clear the display
@@ -68,6 +68,8 @@ void loop() {
 	maximum_p   = maximum;
 	elapsed_p   = elapsed;
 	play_mode_p = play_mode;
+
+  handle_rix();
 }
 
 void draw_elapsed() {
@@ -132,16 +134,15 @@ int process_serial_commands() {
 				parts[1] = input.substring(first + 1, second);
 				parts[2] = input.substring(second + 1);
 
-				if (debug) {
-					s.printf("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
-				}
+
+				rix_6("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
+
 
 				if (parts[0].startsWith("!")) {
 					int ok = process_cmd(parts[0], parts[1]);
 
-					if (debug) {
-						s.printf("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
-					}
+					rix_4("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
+
 				} else {
 					if (parts[2] == "Play") {
 						play_mode = 1;
@@ -160,9 +161,7 @@ int process_serial_commands() {
 						maximum = parts[1].toInt();
 					}
 
-					if (debug) {
-						s.printf("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
-					}
+					rix_6("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
 				}
 
 				return 1;
@@ -178,7 +177,6 @@ int process_serial_commands() {
 }
 
 int process_cmd(String cmd, String value) {
-	//s.printf("Command: %s => %s", cmd.c_str(), value.c_str());
 	int ret = 0;
 
 	if (cmd == "!intensity") {
@@ -189,11 +187,6 @@ int process_cmd(String cmd, String value) {
 	} else if (cmd == "!invert") {
 		int num = value.toInt();
 		set_invert(num);
-
-		ret = 1;
-	} else if (cmd == "!debug") {
-		int num = value.toInt();
-		debug   = num; // Enable/disable global debug
 
 		ret = 1;
 	}
@@ -243,7 +236,7 @@ int fetch_intensity() {
 }
 
 void setup() {
-	Serial.begin(57600);
+	Serial.begin(115200);
 
 #if defined(ESP8266) || defined(ESP32)
 	EEPROM.begin(64);
@@ -256,5 +249,9 @@ void setup() {
 	init_matrix();
 	delay(500);
 
+	int ok = rix_init_wifi("YourSSID", "SekritPassword");
+
 	clear_display();
 }
+
+// vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
