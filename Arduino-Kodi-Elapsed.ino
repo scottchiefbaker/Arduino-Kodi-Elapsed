@@ -64,7 +64,7 @@ void loop() {
 	elapsed_p   = elapsed;
 	play_mode_p = play_mode;
 
-  handle_rix();
+	handle_rix();
 }
 
 void draw_elapsed() {
