@@ -212,7 +212,6 @@ int get_invert() {
 
 void set_intensity(int val) {
 	set_brightness(val);
-	lmd.setIntensity(val);
 
 	EEPROM.write(17,val);
 #if defined(ESP8266) || defined(ESP32)
