@@ -1,3 +1,6 @@
+// Uncomment this to disable the TELNET debug interface
+//#define RIX_DISABLE
+
 #include <EEPROM.h>
 #include <esp-rix.h>
 
