@@ -267,6 +267,7 @@ void setup() {
 	delay(500);
 
 	int ok = rix_init_wifi("YourSSID", "SekritPassword");
+	rix_log_level(5); // Default log level
 
 	clear_display();
 }
