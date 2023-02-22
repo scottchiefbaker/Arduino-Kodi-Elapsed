@@ -1,9 +1,12 @@
 #include <TM1637Display.h>
 
-#define CLK 3
-#define DIO 2
+#define CLK 16
+#define DIO 17
 
 TM1637Display display(CLK, DIO);
+
+// Header definition
+void show_clock(uint8_t hours, uint8_t minutes);
 
 ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -13,6 +16,26 @@ void clear_display() {
 }
 
 void init_matrix() {
+	const short my_delay = 200;
+
+	show_clock(11,11);
+	delay(my_delay);
+	show_clock(22,22);
+	delay(my_delay);
+	show_clock(33,33);
+	delay(my_delay);
+	show_clock(44,44);
+	delay(my_delay);
+	show_clock(55,55);
+	delay(my_delay);
+	show_clock(66,66);
+	delay(my_delay);
+	show_clock(77,77);
+	delay(my_delay);
+	show_clock(88,88);
+	delay(my_delay);
+	show_clock(99,99);
+	delay(my_delay);
 }
 
 void set_brightness(int num) {
