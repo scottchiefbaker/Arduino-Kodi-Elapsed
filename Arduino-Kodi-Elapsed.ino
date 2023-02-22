@@ -1,11 +1,3 @@
-// Use a TM1637 module... if this is not defined we use a 8 x 32 matrix instead
-//
-// Uncomment this to build the TM1637 seven segment version
-// #define TM1637
-
-////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
-
 #include <EEPROM.h>
 #include <esp-rix.h>
 
@@ -22,7 +14,8 @@ int maximum_p   = 0;
 int elapsed_p   = 0;
 int play_mode_p = 0;
 
-#include "hw/tm1637.cpp"
+// Choose which display version you want to use
+//#include "hw/tm1637.cpp"
 #include "hw/matrix.cpp"
 
 void loop() {
@@ -40,11 +33,10 @@ void loop() {
 	unsigned long now = millis();
 	if (now - last_update > 4000) {
 		// We don't have any data so we reset all the time vars
-		elapsed = play_mode = maximum = 0;
-		clear_display();
-
-		// Reset the numbers since we're starting from scratch
+		elapsed   = play_mode = maximum = 0;
 		maximum_p = elapsed_p = play_mode_p = 0;
+
+		clear_display();
 
 		return;
 	}
