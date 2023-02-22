@@ -23,11 +23,12 @@ int play_mode_p = 0;
 
 void loop() {
 	delay(10);
+	//rix_7("Processing serial");
 	int ok = process_serial_commands();
 
 	if (!maximum) {
 		Serial.print("Waiting for input...\r\n");
-		rix_5("Waiting for input...");
+		rix_6("Waiting for input...");
 
 		delay(240);
 	}
@@ -39,24 +40,31 @@ void loop() {
 		elapsed   = play_mode = maximum = 0;
 		maximum_p = elapsed_p = play_mode_p = 0;
 
+		int last_seen = (now - last_update) / 1000;
+
+		rix_6("No update, last seen %d seconds ago", last_seen);
 		clear_display();
 
 		return;
 	}
 
+	bool is_new = (maximum != maximum_p || elapsed != elapsed_p || play_mode != play_mode_p);
+
 	// No data came in via serial
 	if (!ok) {
+		//rix_7("No serial data");
 		return;
 	}
 
-	bool is_new = (maximum != maximum_p || elapsed != elapsed_p || play_mode != play_mode_p);
-
 	// Don't draw anything unless the numbers have changed
 	if (!is_new) {
+		rix_6("Data not new");
 		return;
 	}
 
 	// Show the numbers on the display
+	String mode_str = get_mode_str(play_mode);
+	rix_5("Drawing %d of %d (mode: %s)", elapsed, maximum, mode_str.c_str());
 	draw_elapsed();
 
 	// Store the current values to we can check it next loop
@@ -80,6 +88,22 @@ void draw_elapsed() {
 const byte numChars = 30;
 char receivedChars[numChars]; // an array to store the received data
 
+String get_mode_str(int mode) {
+	String mode_str = "";
+
+	if (play_mode == 1) {
+		mode_str = "Play";
+	} else if (play_mode == 2) {
+		mode_str = "Pause";
+	} else if (play_mode == 3) {
+		mode_str = "Stop";
+	} else {
+		mode_str = "Unknown";
+	}
+
+	return mode_str;
+}
+
 int process_serial_commands() {
 	static boolean recvInProgress = false;
 	static byte ndx               = 0;
@@ -92,19 +116,20 @@ int process_serial_commands() {
 		//Serial.print(rc);
 
 		if (recvInProgress == true) {
+			// If it's not the end marker '>' we keep appending to the string
 			if (rc != endMarker) {
 				receivedChars[ndx] = rc;
+				//rix_7("Adding '%c' ... string is now %d chars long", rc, ndx);
+
 				ndx++;
 				if (ndx >= numChars) {
 					ndx = numChars - 1;
 				}
-
-				//s.printf("Adding '%c' ... string is now %d chars long\r\n", rc, ndx);
 			} else {
 				receivedChars[ndx] = '\0'; // terminate the string
 				String input = receivedChars;
 
-				//s.printf(buf,"Input: '%s'\r\n", receivedChars);
+				//rix_7("Input: '%s'", receivedChars);
 
 				// Reset all the variables so we start fresh
 				memset(receivedChars, 0, numChars);
@@ -129,14 +154,10 @@ int process_serial_commands() {
 				parts[1] = input.substring(first + 1, second);
 				parts[2] = input.substring(second + 1);
 
-
-				rix_6("Words: %s / %s / %s\r\n", parts[0].c_str(), parts[1].c_str(), parts[2].c_str());
-
-
 				if (parts[0].startsWith("!")) {
 					int ok = process_cmd(parts[0], parts[1]);
 
-					rix_4("Command: %s = %s\r\n", parts[0].c_str(), parts[1].c_str());
+					rix_4("Command: %s = %s", parts[0].c_str(), parts[1].c_str());
 
 				} else {
 					if (parts[2] == "Play") {
@@ -156,14 +177,16 @@ int process_serial_commands() {
 						maximum = parts[1].toInt();
 					}
 
-					rix_6("Serial: \"%s\" / %i / %i\r\n", parts[2].c_str(), elapsed, maximum);
+					//rix_6("Serial: \"%s\" / %i / %i", parts[2].c_str(), elapsed, maximum);
 				}
+
+				String mode_str = get_mode_str(play_mode);
+
+				rix_7("Words: %s / %s / %s", parts[0].c_str(), parts[1].c_str(), mode_str.c_str());
 
 				return 1;
 			}
-		}
-
-		else if (rc == startMarker) {
+		} else if (rc == startMarker) {
 			recvInProgress = true;
 		}
 	}
