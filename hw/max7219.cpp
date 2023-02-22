@@ -1,4 +1,4 @@
-#include <LEDMatrixDriver.hpp>
+#include <LEDMatrixDriver.hpp> // LEDMatrixDriver.hpp v0.2.2
 
 // Define the ChipSelect pin for the led matrix (Dont use the SS or MISO pin of your Arduino!)
 //* DIN => Pin #13

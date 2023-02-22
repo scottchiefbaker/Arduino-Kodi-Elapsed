@@ -19,7 +19,7 @@ int play_mode_p = 0;
 
 // Choose which display version you want to use
 //#include "hw/tm1637.cpp"
-#include "hw/matrix.cpp"
+#include "hw/max7219.cpp"
 
 void loop() {
 	delay(10);
