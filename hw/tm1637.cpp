@@ -81,7 +81,7 @@ int show_elapsed(unsigned int seconds, uint8_t play_mode) {
 		return 0;
 	}
 
-	// This is minutes mode
+	// This is minutes:seconds mode
 	// Kick in at 99:59
 	if (seconds <= 99 * 60 + 59) {
 		hours    = 0;
@@ -89,7 +89,7 @@ int show_elapsed(unsigned int seconds, uint8_t play_mode) {
 		seconds -= (minutes * 60);
 
 		show_clock(minutes, seconds);
-	// This is seconds mode
+	// This is hours:minutes mode
 	} else {
 		hours    = seconds / 3600;
 		seconds -= (hours * 3600);
