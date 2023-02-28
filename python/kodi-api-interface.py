@@ -4,17 +4,22 @@ import json
 import time
 import serial
 import sys
+import glob
+import os
 
 kodi_ip              = "127.0.0.1"
 player_id            = "1" # Video = 1, Audio = 0
-arduino_serial_port  = "/dev/ttyUSB0"
 arduino_serial_speed = 57600
 
-ser = serial.Serial(arduino_serial_port, arduino_serial_speed, timeout=1)
+ser = ""
 
 def main():
+    global ser
+
+    ser = get_serial_port()
+
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
-        run_test()
+        run_test(ser)
         sys.exit(1)
     else:
         loop()
@@ -22,8 +27,15 @@ def main():
 def loop():
     global player_id
     global kodi_ip
+    global ser
 
     while 1:
+        ser = get_serial_port()
+
+        if (ser is False):
+            time.sleep(0.5)
+            continue
+
         start = time.time()
 
         # Where to connect for the Kodi API
@@ -89,7 +101,7 @@ def loop():
         # Sleep X seconds
         time.sleep(sleep_time)
 
-def run_test():
+def run_test(ser):
     i     = 0
     total = 6000;
 
@@ -128,5 +140,48 @@ def get_active_player():
     print("Active playerid: " + active_id)
 
     return active_id
+
+PREV_SERIAL_PORT = ""
+def get_serial_port():
+    global PREV_SERIAL_PORT
+    global ser
+    x = []
+
+    # Find the all the USB serial ports
+    x.extend(glob.glob("/dev/ttyUSB*"))
+    #x.extend(glob.glob("/dev/ttyACM*"))
+
+    # We're going to assume the FIRST one
+    x.sort()
+
+    # We didn't find anything
+    if (len(x) == 0):
+        print("No serial ports found")
+        PREV_SERIAL_PORT = ""
+        return False
+
+    found_port = x[0]
+
+    # It's a new port if it's not the previous value we used
+    is_new = False
+    if (PREV_SERIAL_PORT != found_port):
+        print("Found a new serial port %s (Prev: %s)" % (found_port, PREV_SERIAL_PORT))
+        is_new = True
+
+    #print (found_port)
+    #print (os.path.isfile(found_port))
+
+    # It's a newly found port, and it's openable
+    if (is_new and os.access(found_port, os.R_OK)):
+        print("Opening %s for serial access" % found_port)
+        ret = serial.Serial(found_port, arduino_serial_speed, timeout=1)
+
+        PREV_SERIAL_PORT = found_port
+    elif (not is_new):
+        return ser
+    else:
+        ret = False
+
+    return ret
 
 main()
