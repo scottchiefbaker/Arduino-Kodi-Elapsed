@@ -72,7 +72,6 @@ void show_clock(uint8_t hours, uint8_t minutes) {
 }
 
 int show_elapsed(unsigned int seconds, uint8_t play_mode) {
-	uint8_t d1, d2, d3, d4;
 	uint8_t hours, minutes;
 
 	if (seconds == 0) {
