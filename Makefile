@@ -2,7 +2,7 @@
 # Arduino Makefile
 # https://github.com/scottchiefbaker/Arduino-Makefile
 #
-# Requirements: Arduino version 1.5+ installed and in your $PATH
+# Requirements: arduino-cli installed and in your $PATH
 #
 # Usage:
 # export BOARD=arduino:avr:uno && export PORT=/dev/ttyACM0
@@ -23,8 +23,11 @@
 #BOARD = esp8266:esp8266:d1_mini:baud=921600                            # Wemos D1 Mini
 #BOARD = esp32:esp32:esp32:CPUFreq=240,FlashMode=qio,UploadSpeed=921600 # ESP32
 
-#PORT = /dev/ttyUSB0
+PORT ?= /dev/ttyUSB0
 #PORT = /dev/ttyACM0
+
+# For WebOTA: https://github.com/scottchiefbaker/ESP-WebOTA
+WEBOTA_URL ?= http://192.168.5.114:8080/webota
 
 #########################################################################
 
@@ -32,6 +35,7 @@
 -include board.mk
 
 SKETCH_FILE   = $(shell find $(CURDIR) -name "*.ino" -type f | sort | head -n1)
+SKETCH_DIR    = $(shell dirname $(SKETCH_FILE))
 SKETCH_NAME   = $(shell basename $(SKETCH_FILE:.ino=))
 MONITOR_SPEED = $(shell egrep 'Serial.begin\([0-9]+\)' $(SKETCH_FILE) | head -n1 | perl -pE 's/\D+//g')
 BUILD_DIR     = /tmp/arduino-build-$(SKETCH_NAME)/
@@ -52,11 +56,14 @@ ifndef PORT
 $(error PORT variable is not set, unable to continue)
 endif
 
+###################################################################################
+###################################################################################
+
 default: display_config
-	arduino --verify --pref build.path=$(BUILD_DIR) --port $(PORT) --board $(BOARD) $(SKETCH_FILE)
+	arduino-cli compile --fqbn $(BOARD) --port $(PORT) $(SKETCH_DIR) --export-binaries --build-path $(BUILD_DIR) --output-dir $(BUILD_DIR)
 
 upload: display_config
-	arduino --upload --pref build.path=$(BUILD_DIR) --port $(PORT) --board $(BOARD) $(SKETCH_FILE)
+	arduino-cli compile --fqbn $(BOARD) --port $(PORT) $(SKETCH_DIR) --upload
 
 monitor:
 	screen $(PORT) $(MONITOR_SPEED)
@@ -67,9 +74,13 @@ binary: default
 	@echo
 	@echo "Binary: $(BINARY)"
 
+webota_upload: binary
+	curl -F "file=@$(BINARY)" $(WEBOTA_URL)
+
 clean:
-	# Make sure BUILD_DIR is not an empty string, and then remove it
+#	Make sure BUILD_DIR is not an empty string, and then remove it
 	test -n "$(BUILD_DIR)" && $(RM) -r $(BUILD_DIR)
+	$(RM) $(BINARY)
 
 display_config:
 	@echo "BOARD         : $(BOARD)"
@@ -77,6 +88,7 @@ display_config:
 	@echo "MONITOR SPEED : $(MONITOR_SPEED)"
 	@echo "SKETCH NAME   : $(SKETCH_NAME)"
 	@echo "SKETCH FILE   : $(SKETCH_FILE)"
+#	@echo "SKETCH DIR    : $(SKETCH_DIR)"
 	@echo
 
 #########################################################################
