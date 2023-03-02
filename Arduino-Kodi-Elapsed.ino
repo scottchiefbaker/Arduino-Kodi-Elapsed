@@ -230,7 +230,7 @@ int fetch_intensity() {
 }
 
 void setup() {
-	Serial.begin(115200);
+	Serial.begin(57600);
 
 #if defined(ESP8266) || defined(ESP32)
 	EEPROM.begin(64);
