@@ -7,13 +7,14 @@ Use an Arduino and an LED Matrix to show the elapsed or remaining time for Kodi.
 * Kodi installation with the HTTP API enabled
 * 32x8 LED Matrix or TM1637 seven segment "clock" display
 * Arduino to drive the LED Matrix
+  * Tested on: Arduino Nano, ESP8266, and ESP32
 * Perl or Python installed to read data from Kodi and send data to Arduino
 * Arduino connected to the RPi via USB (for serial connectivity)
 
 ## Installation
 
-* Install sketch on Arduino
-* Wire LED Matrix to Arduino
+* Install sketch on Arduino Nano
+* Wire LED Matrix to Arduino Nano
   * DIN => Pin #13
   * CLK => Pin #11
   * CS  => Pin #9
