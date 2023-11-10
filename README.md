@@ -1,6 +1,7 @@
 # Kodi Elapsed/Remaining Time display
 
-Use an Arduino and an LED Matrix to show the elapsed or remaining time for Kodi. Now your Kodi installation can look just like and old DVD player.
+Use an Arduino and an LED Matrix to show the elapsed or remaining time for
+Kodi. Now your Kodi installation can look just like and old DVD player.
 
 ## Requirements
 
@@ -27,7 +28,21 @@ Use an Arduino and an LED Matrix to show the elapsed or remaining time for Kodi.
 
 ## Testing
 
-Once your Arduino and display are connected you can test output with the following commands:
+Once your Arduino and display are connected you can test output with the
+following commands:
 
-* `echo "<1236:2860:Play>" > /dev/ttyUSB0`
 * run `kodi-led-service.pl --test`
+* `echo "<1236:2860:Play>" > /dev/ttyUSB0`
+  * (Only works after display is running)
+
+## Commands
+
+You can send serial commands to the Arduino that affect the display. While the
+display is running and displaying time you can send commands:
+
+* Show time remaining
+  * `echo "<!invert:1>" > /dev/ttyUSB0`
+* Show time elapsed:
+  * `echo "<!invert:0>" > /dev/ttyUSB0`
+* Set display intensity 0-9:
+  * `echo "<!intensity:5>" > /dev/ttyUSB0`
