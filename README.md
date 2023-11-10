@@ -1,6 +1,6 @@
 # Kodi Elapsed/Remaining Time display
 
-Use an Arduino and an LED Matrix to show the elapsed or remaining time for Kodi.
+Use an Arduino and an LED Matrix to show the elapsed or remaining time for Kodi. Now your Kodi installation can look just like and old DVD player.
 
 ## Requirements
 
