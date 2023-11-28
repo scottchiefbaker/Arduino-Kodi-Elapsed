@@ -4,6 +4,10 @@
 #include <EEPROM.h>
 #include <esp-rix.h>
 
+#define KODI_PLAY  1
+#define KODI_PAUSE 2
+#define KODI_STOP  3
+
 // Variable to store the last time we saw a serial update
 unsigned long last_update = 0;
 
@@ -91,11 +95,11 @@ char receivedChars[numChars]; // an array to store the received data
 String get_mode_str(int mode) {
 	String mode_str = "";
 
-	if (play_mode == 1) {
+	if (play_mode == KODI_PLAY) {
 		mode_str = "Play";
-	} else if (play_mode == 2) {
+	} else if (play_mode == KODI_PAUSE) {
 		mode_str = "Pause";
-	} else if (play_mode == 3) {
+	} else if (play_mode == KODI_STOP) {
 		mode_str = "Stop";
 	} else {
 		mode_str = "Unknown";
